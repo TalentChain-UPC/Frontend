@@ -21,6 +21,7 @@ export const mockUsers = [
     password: 'trabajador123',
     name: 'Juan Pérez',
     role: 'trabajador',
+    puesto: 'Desarrollador',
     companyId: 'comp_001'
   }
 ]

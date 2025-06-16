@@ -1,9 +1,9 @@
 <template>
   <!-- Contenedor principal -->
   <div class="app-container">
-    <router-view v-slot="{ Component }">
+    <router-view :key="$route.fullPath" v-slot="{ Component }">
       <transition name="fade" mode="out-in">
-        <component :is="Component" />
+        <component :is="Component" :key="$route.fullPath" />
       </transition>
     </router-view>
 

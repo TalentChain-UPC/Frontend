@@ -43,25 +43,35 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes
 })
 
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
 
-  // Verificar autenticación
+  // Evitar inicialización infinita
+  if (!authStore.isInitialized) {
+    await authStore.initialize()
+  }
+
+  // Caso especial para la ruta raíz
+  if (to.path === '/' && from.path !== '/login') {
+    return next('/login')
+  }
+
+  // Usuario no autenticado intentando acceder a ruta protegida
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return next('/login')
   }
 
-  // Verificar roles
-  if (to.meta.allowedRoles && !to.meta.allowedRoles.includes(authStore.user?.role)) {
+  // Usuario autenticado intentando acceder a ruta de invitado
+  if (to.meta.requiresGuest && authStore.isAuthenticated) {
     return next(authStore.getDashboardRoute())
   }
 
-  // Redirigir usuarios autenticados lejos de páginas de invitado
-  if (to.meta.requiresGuest && authStore.isAuthenticated) {
+  // Verificación de roles
+  if (to.meta.allowedRoles && !to.meta.allowedRoles.includes(authStore.user?.role)) {
     return next(authStore.getDashboardRoute())
   }
 

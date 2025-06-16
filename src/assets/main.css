@@ -12,9 +12,6 @@ html, body, #app {
 
 /* Fondo que cubre absolutamente todo */
 body {
-  background: linear-gradient(135deg,
-             rgba(67, 97, 238, 0.8) 0%,
-             rgba(81, 45, 168, 0.8) 100%);
   background-attachment: fixed;
   background-repeat: no-repeat;
   background-size: cover;
