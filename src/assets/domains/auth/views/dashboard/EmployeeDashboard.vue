@@ -450,7 +450,7 @@ export default {
 /* Medals Card */
 .medals-card h3 {
   margin-top: 0;
-  color: #fff;
+  color: black;
 }
 
 .medals-grid {
@@ -465,7 +465,7 @@ export default {
   height: 0;
   padding-bottom: 100%;
   background: linear-gradient(135deg, #f0a500, #f39c12);
-  border-radius: 8px;
+  border-radius: 7px;
   margin: 0 auto;
 }
 
