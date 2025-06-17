@@ -1,235 +1,113 @@
 <template>
   <AppNavbar />
   <div class="grid">
-    <!-- Profile Card - Visible en todos los dispositivos -->
-    <div class="item item-0 profile-card">
-      <img src="https://randomuser.me/api/portraits/men/44.jpg" class="profile-pic" />
+    <!-- Perfil -->
+    <div class="item item-0 desktop-only profile-card">
+      <img src="https://randomuser.me/api/portraits/women/44.jpg" class="profile-pic" />
       <div class="profile-info">
-        <h2>{{ user.name }}</h2>
+        <h2>{{ user.fullName }}</h2>
         <p>{{ user.email }}</p>
-        <p>{{ user.puesto }}</p>
-
+        <p>{{ user.role }}</p>
         <div class="progress-bar">
-          <div class="progress-fill" :style="{ width: '60%' }"></div>
+          <div class="progress-fill" :style="{ width: user.progress + '%' }"></div>
         </div>
-        <span class="progress-text">60% para subir de nivel</span>
+        <span class="progress-text">{{ user.progress }}% para subir de nivel</span>
       </div>
-
       <button class="edit-btn" @click="openModal">Editar perfil</button>
     </div>
 
-    <!-- Modal -->
-    <div v-if="showModal" class="modal-overlay">
-      <div class="modal-content">
-        <h2>Editar Perfil</h2>
-        <form @submit.prevent="saveChanges">
-          <div class="form-group">
-            <label>Nombre completo</label>
-            <input v-model="editUser.name" required />
-          </div>
-
-          <div class="form-group">
-            <label>Correo</label>
-            <input v-model="editUser.email" type="email" required />
-          </div>
-
-          <div class="form-group">
-            <label>Puesto</label>
-            <input v-model="editUser.puesto" required />
-          </div>
-
-          <div class="modal-actions">
-            <button type="submit" class="save-btn">Guardar</button>
-            <button type="button" @click="closeModal" class="cancel-btn">Cancelar</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Medallas - Versión Mobile -->
-    <div class="item mobile-only medals-card">
+    <!-- Medallas -->
+    <div class="item item-1 medals-card">
       <h3>Medallas</h3>
       <div class="medals-grid">
-        <div v-for="i in 4" :key="'mobile-medal-'+i" class="medal"></div>
+        <div class="medal" v-for="(medal, index) in medals" :key="index"></div>
       </div>
     </div>
 
-    <!-- Medallas - Versión Desktop -->
-    <div class="item item-1 desktop-only medals-card">
-      <h3>Medallas</h3>
-      <div class="medals-grid">
-        <div v-for="i in 8" :key="'desktop-medal-'+i" class="medal"></div>
-      </div>
-    </div>
-
-    <!-- Logros - Versión Mobile -->
-    <div class="item mobile-only">
-      <div class="achievements-card">
-        <div class="achievements-header">
-          <h3 class="achievements-title">Logros Principales</h3>
-        </div>
-        <div class="achievements-list">
-          <div v-for="achievement in mobileAchievements" :key="'mobile-'+achievement.id" class="achievement-item">
-            <div class="progress-circle">
-              <span class="progress-text">{{ achievement.progress }}</span>
-            </div>
-            <div class="achievement-details">
-              <p class="achievement-text">{{ achievement.text }}</p>
-            </div>
+    <!-- Logros personales -->
+    <div class="item item-2 personal-achievements-card">
+      <h3 class="personal-achievements-header">Logros personales</h3>
+      <div class="personal-achievements-container scrollable-container">
+        <div class="goal-tracker" v-for="(goal, index) in personalAchievements" :key="index">
+          <div class="goal-progress-circle">
+            <span class="goal-progress-count">{{ goal.progress }}%</span>
+          </div>
+          <div class="goal-description">
+            <p class="goal-text">{{ goal.text }}</p>
+          </div>
+          <div class="goal-rewards">
+            <div class="reward-badge"></div>
+            <span class="reward-amount">{{ goal.reward }} pts</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Logros - Versión Desktop -->
-    <div class="item item-2 desktop-only">
-      <div class="achievements-card">
-        <div class="achievements-header">
-          <h3 class="achievements-title">Logros Mensuales</h3>
-          <button class="redeem-button">Canjear premios</button>
+    <!-- Trayectoria destacada -->
+    <div class="item item-3 featured-trajectory">
+      <h3 class="title">Trayectoria destacada</h3>
+      <div class="podium-container">
+        <div class="podium-block gold">
+          <div class="position">🥇 1°</div>
+          <div class="name">{{ podium[0].name }}</div>
+          <div class="points">{{ podium[0].points }} pts</div>
         </div>
-        <div class="achievements-list">
-          <div v-for="achievement in achievements" :key="achievement.id" class="achievement-item">
-            <div class="progress-circle">
-              <span class="progress-text">{{ achievement.progress }}</span>
-            </div>
-            <div class="achievement-details">
-              <p class="achievement-text">{{ achievement.text }}</p>
-            </div>
-            <div class="achievement-points">
-              <div class="points-icon"></div>
-              <span class="points-value">{{ achievement.points }}</span>
-            </div>
-          </div>
+        <div class="podium-block silver">
+          <div class="position">🥈 2°</div>
+          <div class="name">{{ podium[1].name }}</div>
+          <div class="points">{{ podium[1].points }} pts</div>
+        </div>
+        <div class="podium-block bronze">
+          <div class="position">🥉 3°</div>
+          <div class="name">{{ podium[2].name }}</div>
+          <div class="points">{{ podium[2].points }} pts</div>
         </div>
       </div>
     </div>
 
-    <!-- Trayectoria - Versión Mobile -->
-    <div class="item mobile-only">
-      <div class="featured-trajectory">
-        <h3 class="title">Top 3</h3>
-        <div class="podium-container">
-          <div class="podium-block silver" v-if="sortedPeople[1]">
-            <div class="position">2°</div>
-            <div class="name">{{ sortedPeople[1].name }}</div>
+    <!-- Empleados destacados -->
+    <div class="item item-4 featured-employees">
+      <h3 class="title">Empleados destacados</h3>
+      <div class="header-row">
+        <span>Nombre y rol</span>
+        <span>Recompensa</span>
+      </div>
+      <div class="employee-list">
+        <div class="employee-item" v-for="(employee, index) in employees" :key="index">
+          <div>
+            <p class="name">{{ employee.name }}</p>
+            <p class="role">{{ employee.role }}</p>
           </div>
-          <div class="podium-block gold" v-if="sortedPeople[0]">
-            <div class="position">1°</div>
-            <div class="name">{{ sortedPeople[0].name }}</div>
-          </div>
-          <div class="podium-block bronze" v-if="sortedPeople[2]">
-            <div class="position">3°</div>
-            <div class="name">{{ sortedPeople[2].name }}</div>
+          <div>
+            <p class="reward">{{ employee.reward }} pts</p>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Trayectoria - Versión Desktop -->
-    <div class="item item-3 desktop-only">
-      <div class="featured-trajectory">
-        <h3 class="title">Trayectoria destacada</h3>
-        <div class="podium-container">
-          <div class="podium-block silver" v-if="sortedPeople[1]">
-            <div class="position">2°</div>
-            <div class="person-info">
-              <div class="name">{{ sortedPeople[1].name }}</div>
-              <div class="points">{{ sortedPeople[1].points }} pts</div>
-            </div>
-          </div>
-          <div class="podium-block gold" v-if="sortedPeople[0]">
-            <div class="position">1°</div>
-            <div class="person-info">
-              <div class="name">{{ sortedPeople[0].name }}</div>
-              <div class="points">{{ sortedPeople[0].points }} pts</div>
-            </div>
-          </div>
-          <div class="podium-block bronze" v-if="sortedPeople[2]">
-            <div class="position">3°</div>
-            <div class="person-info">
-              <div class="name">{{ sortedPeople[2].name }}</div>
-              <div class="points">{{ sortedPeople[2].points }} pts</div>
-            </div>
-          </div>
-        </div>
+  <!-- Modal -->
+  <div class="modal-overlay" v-if="showModal">
+    <div class="modal-content">
+      <h2>Editar perfil</h2>
+      <div class="form-group">
+        <label>Nombre completo</label>
+        <input v-model="user.fullName" />
       </div>
-    </div>
-
-    <!-- Empleados - Versión Mobile -->
-    <div class="item mobile-only">
-      <div class="featured-employees">
-        <h3 class="title">Destacados</h3>
-        <div class="employee-list">
-          <div v-for="(item, index) in mobileEmployees" :key="'mobile-emp-'+index" class="employee-item">
-            <p class="name">{{ item.name }}</p>
-            <p class="status">{{ item.status }}</p>
-          </div>
-        </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input v-model="user.email" />
       </div>
-    </div>
-
-    <!-- Empleados - Versión Desktop -->
-    <div class="item item-5 desktop-only">
-      <div class="personal-achievements-card">
-        <h3 class="personal-achievements-header">Mis Progresos</h3>
-        <div class="personal-achievements-container">
-          <div v-for="goal in personalGoals" :key="goal.id" class="goal-tracker">
-            <div class="goal-progress-circle">
-              <span class="goal-progress-count">{{ goal.progress }}</span>
-            </div>
-            <div class="goal-description">
-              <p class="goal-text">{{ goal.text }}</p>
-            </div>
-            <div class="goal-rewards">
-              <div class="reward-badge"></div>
-              <span class="reward-amount">{{ goal.points }} pts</span>
-            </div>
-          </div>
-        </div>
+      <div class="form-group">
+        <label>Rol</label>
+        <select v-model="user.role">
+          <option>USER</option>
+          <option>ADMIN</option>
+        </select>
       </div>
-
-
-
-    </div>
-
-    <!-- Progresos - Versión Mobile -->
-    <div class="item mobile-only">
-      <div class="personal-achievements-card">
-        <h3 class="personal-achievements-header">Mis Metas</h3>
-        <div class="personal-achievements-container">
-          <div v-for="goal in mobileGoals" :key="'mobile-goal-'+goal.id" class="goal-tracker">
-            <div class="goal-progress-circle">
-              <span class="goal-progress-count">{{ goal.progress }}</span>
-            </div>
-            <div class="goal-description">
-              <p class="goal-text">{{ goal.text }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Progresos - Versión Desktop -->
-    <div class="item item-4 desktop-only">
-      <div class="featured-employees">
-        <h3 class="title">Empleados destacados</h3>
-        <div class="employee-list">
-          <div class="header-row">
-            <span class="header">Empleado</span>
-            <span class="header">Logro</span>
-          </div>
-          <div v-for="(item, index) in trajectoryData" :key="index" class="employee-item">
-            <div class="employee-info">
-              <p class="name">{{ item.name }}</p>
-              <p class="role">{{ item.role }}</p>
-            </div>
-            <div class="achievement-info">
-              <p class="status">{{ item.status }}</p>
-              <p class="reward">{{ item.reward }}</p>
-            </div>
-          </div>
-        </div>
+      <div class="modal-actions">
+        <button class="save-btn" @click="saveChanges">Guardar</button>
+        <button class="cancel-btn" @click="closeModal">Cancelar</button>
       </div>
     </div>
   </div>
@@ -852,6 +730,23 @@ export default {
 
 .cancel-btn:hover {
   background-color: #d7372f;
+}
+
+/* NUEVOS ESTILOS PARA SCROLL */
+.scrollable-container {
+  max-height: 300px; /* ajusta según tu diseño */
+  overflow-y: auto;
+  padding-right: 0.5rem; /* espacio para que no se corte el contenido */
+}
+
+/* Opcional: estiliza la barra de scroll para que se vea más limpia */
+.scrollable-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollable-container::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
 }
 
 /* Desktop Styles */
