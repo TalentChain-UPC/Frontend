@@ -69,7 +69,7 @@ export default {
 
     const handleLogout = () => {
       authStore.logout()
-      router.push('/login')
+      router.push('/')
     }
 
     const activeForm = ref('admin') // o 'user'
