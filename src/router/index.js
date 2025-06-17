@@ -39,6 +39,10 @@ const routes = [
   {
     path: '/:pathMatch(.*)*',
     redirect: '/'
+  },
+  {
+    path: '/login',
+    redirect: '/'
   }
 ]
 
