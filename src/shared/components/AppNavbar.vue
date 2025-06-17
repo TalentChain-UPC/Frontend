@@ -46,7 +46,7 @@ export default {
   border-radius: 5px;
   font-family: 'Poppins', sans-serif;
   font-weight: bold;
-  width: 80%;
+  width: 71%;
   margin: 15px auto;
   flex-wrap: wrap;
 }
@@ -91,5 +91,15 @@ export default {
 
 .logout:hover {
   background-color: #d32f2f;
+}
+
+@media (max-width: 768px) {
+  .navbar{
+    width: 89%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-left: 3%;
+  }
 }
 </style>
