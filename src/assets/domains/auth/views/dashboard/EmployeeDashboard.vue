@@ -8,7 +8,7 @@
         <div class="profile-info">
           <h2>{{ user.name }}</h2>
           <p>{{ user.email }}</p>
-          <p>{{ user.role }}</p>
+          <p>{{ user.puesto }}</p>
           <div class="progress-bar">
             <div class="progress-fill" style="width: 60%;"></div>
           </div>
@@ -144,7 +144,7 @@
       <h2>Editar perfil</h2>
       <div class="form-group">
         <label>Nombre completo</label>
-        <input v-model="user.fullName" />
+        <input v-model="user.name" />
       </div>
       <div class="form-group">
         <label>Email</label>
@@ -152,10 +152,7 @@
       </div>
       <div class="form-group">
         <label>Rol</label>
-        <select v-model="user.role">
-          <option>USER</option>
-          <option>ADMIN</option>
-        </select>
+        <input v-model="user.puesto">
       </div>
       <div class="modal-actions">
         <button class="save-btn" @click="saveChanges">Guardar</button>
