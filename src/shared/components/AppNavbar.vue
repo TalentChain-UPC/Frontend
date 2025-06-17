@@ -26,7 +26,7 @@ export default {
 
     const handleLogout = async () => {
       authStore.logout()
-      await router.replace('/')
+      await router.replace('/login')
     }
 
     return {

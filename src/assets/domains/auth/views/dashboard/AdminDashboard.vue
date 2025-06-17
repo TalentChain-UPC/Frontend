@@ -59,6 +59,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { ref, reactive, watch } from 'vue'
+import api from '@/assets/domains/auth/services/api.js'
 
 export default {
   name: 'AdminDashboard',
@@ -99,11 +100,14 @@ export default {
         role: activeForm.value === 'admin' ? 'administrativo' : form.role
       }
 
-      // Simulación (reemplazar con llamada a tu backend)
-      console.log('Enviando:', dataToSend)
-
-      message.value = 'Cuenta creada correctamente (simulado)'
-      // Aquí irá la lógica con axios o fetch en producción
+      try {
+        const response = await api.post('/users', dataToSend)
+        console.log('Respuesta del backend:', response.data)
+        message.value = 'Cuenta creada correctamente'
+      } catch (error) {
+        console.error('Error al crear la cuenta:', error.response?.data || error.message)
+        message.value = 'Error al crear la cuenta'
+      }
     }
 
     return {
@@ -112,7 +116,8 @@ export default {
       handleSubmit,
       message,
       user,
-      handleLogout
+      handleLogout,
+      api
     }
   }
 }

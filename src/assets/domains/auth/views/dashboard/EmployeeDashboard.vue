@@ -3,15 +3,17 @@
   <div class="grid">
     <!-- Perfil -->
     <div class="item item-0 desktop-only profile-card">
-      <img src="https://randomuser.me/api/portraits/women/44.jpg" class="profile-pic" />
-      <div class="profile-info">
-        <h2>{{ user.fullName }}</h2>
-        <p>{{ user.email }}</p>
-        <p>{{ user.role }}</p>
-        <div class="progress-bar">
-          <div class="progress-fill" :style="{ width: user.progress + '%' }"></div>
+      <div class="profile-top">
+        <img src="https://randomuser.me/api/portraits/men/44.jpg" class="profile-pic" />
+        <div class="profile-info">
+          <h2>{{ user.name }}</h2>
+          <p>{{ user.email }}</p>
+          <p>{{ user.role }}</p>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 60%;"></div>
+          </div>
+          <span class="progress-text">40% para subir de nivel</span>
         </div>
-        <span class="progress-text">{{ user.progress }}% para subir de nivel</span>
       </div>
       <button class="edit-btn" @click="openModal">Editar perfil</button>
     </div>
@@ -43,30 +45,80 @@
       </div>
     </div>
 
-    <!-- Trayectoria destacada -->
-    <div class="item item-3 featured-trajectory">
-      <h3 class="title">Trayectoria destacada</h3>
-      <div class="podium-container">
-        <div class="podium-block gold">
-          <div class="position">🥇 1°</div>
-          <div class="name">{{ podium[0].name }}</div>
-          <div class="points">{{ podium[0].points }} pts</div>
+    <!-- Trayectoria - Versión Mobile -->
+    <div class="item mobile-only">
+      <div class="featured-trajectory">
+        <h3 class="title">Top 3</h3>
+        <div class="podium-container">
+          <div class="podium-block silver" v-if="sortedPeople[1]">
+            <div class="position">2°</div>
+            <div class="name">{{ sortedPeople[1].name }}</div>
+          </div>
+          <div class="podium-block gold" v-if="sortedPeople[0]">
+            <div class="position">1°</div>
+            <div class="name">{{ sortedPeople[0].name }}</div>
+          </div>
+          <div class="podium-block bronze" v-if="sortedPeople[2]">
+            <div class="position">3°</div>
+            <div class="name">{{ sortedPeople[2].name }}</div>
+          </div>
         </div>
-        <div class="podium-block silver">
-          <div class="position">🥈 2°</div>
-          <div class="name">{{ podium[1].name }}</div>
-          <div class="points">{{ podium[1].points }} pts</div>
-        </div>
-        <div class="podium-block bronze">
-          <div class="position">🥉 3°</div>
-          <div class="name">{{ podium[2].name }}</div>
-          <div class="points">{{ podium[2].points }} pts</div>
+      </div>
+    </div>
+
+    <!-- Trayectoria - Versión Desktop -->
+    <div class="item item-3 desktop-only">
+      <div class="featured-trajectory">
+        <h3 class="title">Trayectoria destacada</h3>
+        <div class="podium-container">
+          <div class="podium-block silver" v-if="sortedPeople[1]">
+            <div class="position">2°</div>
+            <div class="person-info">
+              <div class="name">{{ sortedPeople[1].name }}</div>
+              <div class="points">{{ sortedPeople[1].points }} pts</div>
+            </div>
+          </div>
+          <div class="podium-block gold" v-if="sortedPeople[0]">
+            <div class="position">1°</div>
+            <div class="person-info">
+              <div class="name">{{ sortedPeople[0].name }}</div>
+              <div class="points">{{ sortedPeople[0].points }} pts</div>
+            </div>
+          </div>
+          <div class="podium-block bronze" v-if="sortedPeople[2]">
+            <div class="position">3°</div>
+            <div class="person-info">
+              <div class="name">{{ sortedPeople[2].name }}</div>
+              <div class="points">{{ sortedPeople[2].points }} pts</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Empleados destacados -->
-    <div class="item item-4 featured-employees">
+    <div class="item item-5 featured-employees">
+      <div class="personal-achievements-card">
+        <h3 class="personal-achievements-header">Mis Progresos</h3>
+        <div class="personal-achievements-container">
+          <div v-for="goal in personalGoals" :key="goal.id" class="goal-tracker">
+            <div class="goal-progress-circle">
+              <span class="goal-progress-count">{{ goal.progress }}</span>
+            </div>
+            <div class="goal-description">
+              <p class="goal-text">{{ goal.text }}</p>
+            </div>
+            <div class="goal-rewards">
+              <div class="reward-badge"></div>
+              <span class="reward-amount">{{ goal.points }} pts</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+     <!-- Progresos - Versión Desktop -->
+    <div class="item item-4 desktop-only">
       <h3 class="title">Empleados destacados</h3>
       <div class="header-row">
         <span>Nombre y rol</span>
@@ -124,6 +176,18 @@ export default {
     AppNavbar
   },
   setup() {
+
+    const medals = ref([{}, {}, {},{},{},{}])
+    const personalAchievements = ref([
+      { text: 'Capacitación finalizada', progress: 90, reward: 300 },
+      { text: 'Trabajo en equipo', progress: 100, reward: 500 }
+    ])
+    const employees = ref([
+      { name: 'Pedro R.', role: 'QA', reward: 300 },
+      { name: 'Carmen T.', role: 'Diseñadora UX', reward: 400 }
+    ])
+
+
     const achievements = [
       { id: 1, text: "Asistencia perfecta este mes", progress: "12/30", points: 140 },
       { id: 2, text: "Capacitación completada", progress: "3/5", points: 200 },
@@ -162,7 +226,7 @@ export default {
 
     const logout = () => {
       authStore.logout();
-      router.push('/');
+      router.push('/login');
     };
 
     const sortedPeople = computed(() => {
@@ -217,7 +281,10 @@ export default {
       closeModal,
       saveChanges,
       showModal,
-      editUser
+      editUser,
+      medals,
+      personalAchievements,
+      employees
     };
   }
 };
@@ -233,6 +300,7 @@ export default {
   padding: 10px;
   width: 100%;
   box-sizing: border-box;
+  grid-auto-rows: auto;
 }
 
 .item {
@@ -246,16 +314,25 @@ export default {
 /* Visibilidad condicional */
 .mobile-only {
   display: block;
+  grid-auto-rows: auto;
 }
 
 .desktop-only {
   display: none;
+  grid-auto-rows: auto;
 }
 
 /* Profile Card */
+.profile-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
 .profile-card {
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* Mantenemos columna para que el botón quede debajo */
   align-items: center;
   background-color: #f9d9f3;
   color: #1a1f24;
@@ -267,12 +344,12 @@ export default {
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  margin-bottom: 16px;
   object-fit: cover;
+  flex-shrink: 0;
 }
 
 .profile-info {
-  text-align: center;
+  text-align: left; /* alinear texto a la izquierda */
   width: 100%;
 }
 

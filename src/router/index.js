@@ -40,10 +40,6 @@ const routes = [
     path: '/:pathMatch(.*)*',
     redirect: '/'
   },
-  {
-    path: '/login',
-    redirect: '/'
-  }
 ]
 
 const router = createRouter({
