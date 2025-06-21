@@ -6,29 +6,19 @@ export const useAuthStore = defineStore('auth', {
     user: null,
     token: null,
     isLoading: false,
-    error: null
+    error: null,
+    isInitialized: false
   }),
 
   actions: {
     async initialize() {
       const token = localStorage.getItem('authToken')
-      if (token && !this.token) {
+      const userData = localStorage.getItem('authUser')
+      if (token && userData) {
         this.token = token
-        // Simulamos la carga del usuario desde el token
-        await this.loadUserFromToken(token)
+        this.user = JSON.parse(userData)
       }
-    },
-
-    async loadUserFromToken(token) {
-      try {
-        // En una app real, aquí harías una petición al backend
-        const userId = parseInt(token.replace('mock-token-', ''))
-        const mockUser = (await AuthService.getUserById(userId)) || null
-        this.user = mockUser
-      } catch (error) {
-        console.error('Error loading user:', error)
-        this.logout()
-      }
+      this.isInitialized = true
     },
 
     async login(email, password) {
@@ -36,15 +26,21 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
 
       try {
-        const response = await AuthService.login(email, password)
-        if (!response.success) throw new Error(response.error || 'Login failed')
+        const { success, token, user, error } = await AuthService.login(email, password)
 
-        this.user = response.user
-        this.token = response.token
-        localStorage.setItem('authToken', this.token)
+        if (!success) throw new Error(error)
+
+        // 🔥 Asignar el rol principal si viene como array
+        user.role = Array.isArray(user.roles) ? user.roles[0] : user.role
+
+        this.user = user
+        this.token = token
+        localStorage.setItem('authToken', token)
+        localStorage.setItem('authUser', JSON.stringify(user))
+
         return true
-      } catch (error) {
-        this.error = error.message
+      } catch (e) {
+        this.error = e.message
         return false
       } finally {
         this.isLoading = false
@@ -56,18 +52,17 @@ export const useAuthStore = defineStore('auth', {
       this.token = null
       this.isInitialized = false
       localStorage.removeItem('authToken')
+      localStorage.removeItem('authUser')
     },
 
     getDashboardRoute() {
-      if (!this.user?.role) return '/login'
-
+      const role = this.user?.role
       const routes = {
-        administrativo: '/admin-dashboard',
-        empresa: '/company-dashboard',
-        trabajador: '/employee-dashboard'
+        MANAGER: '/admin-dashboard',
+        ADMIN: '/company-dashboard',
+        CLIENT: '/employee-dashboard'
       }
-
-      return routes[this.user.role] || '/login'
+      return routes[role] || '/login'
     }
   },
 

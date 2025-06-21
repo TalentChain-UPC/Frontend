@@ -10,9 +10,7 @@
         <button @click="activeForm = 'user'" :class="{ active: activeForm === 'user' }">
           Crear Usuario
         </button>
-        <button class="logout" @click="handleLogout">
-        Cerrar Sesión
-        </button>
+        <button class="logout" @click="handleLogout">Cerrar Sesión</button>
       </nav>
     </aside>
 
@@ -21,32 +19,83 @@
       <h1>{{ activeForm === 'admin' ? 'Crear Cuenta de Administrador' : 'Crear Cuenta de Usuario' }}</h1>
 
       <form @submit.prevent="handleSubmit">
-        <div class="form-group">
-          <label>Nombre Completo</label>
-          <input v-model="form.fullName" type="text" required />
-        </div>
+        <!-- Formulario de Administrador -->
+        <template v-if="activeForm === 'admin'">
+          <div class="form-group">
+            <label>Email</label>
+            <input v-model="form.email" type="email" required />
+          </div>
+          <div class="form-group">
+            <label>Contraseña</label>
+            <input v-model="form.password" type="password" required />
+          </div>
+        </template>
 
-        <div class="form-group">
-          <label>Email</label>
-          <input v-model="form.email" type="email" required />
-        </div>
+        <!-- Formulario de Usuario -->
+        <template v-else>
+          <div class="form-group">
+            <label>Nombres</label>
+            <input v-model="form.name" type="text" required />
+          </div>
+          <div class="form-group">
+            <label>Apellidos</label>
+            <input v-model="form.lastName" type="text" required />
+          </div>
+          <div class="form-group">
+            <label>Edad</label>
+            <input v-model="form.age" type="number" required />
+          </div>
+          <div class="form-group">
+            <label>DNI</label>
+            <input v-model="form.dni" type="text" required />
+          </div>
+          <div class="form-group">
+            <label>Género</label>
+            <input v-model="form.gender" type="text" required />
+          </div>
+          <div class="form-group">
+            <label>Ubicación</label>
+            <input v-model="form.location" type="text" required />
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input v-model="form.phoneNumber" type="text" required />
+          </div>
+          <div class="form-group">
+            <label>Email Corporativo</label>
+            <input v-model="form.workEmail" type="email" required />
+          </div>
+          <div class="form-group">
+            <label>Email Personal</label>
+            <input v-model="form.personalEmail" type="email" required />
+          </div>
+          <div class="form-group">
+            <label>Ocupación</label>
+            <input v-model="form.occupation" type="text" required />
+          </div>
+          <div class="form-group">
+            <label>Área</label>
+            <select v-model="form.area" required>
+              <option disabled value="">Seleccione un área</option>
+              <option value="INFORMATION_TECHNOLOGY">Tecnología</option>
+              <option value="HUMAN_RESOURCES">Recursos Humanos</option>
+              <option value="FINANCE">Finanzas</option>
+              <option value="SALES">Ventas</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Rol</label>
+            <select v-model="form.role" required>
+              <option disabled value="">Seleccione</option>
+              <option value="empresa">Empresa</option>
+              <option value="trabajador">Trabajador</option>
+            </select>
+          </div>
+        </template>
 
-        <div class="form-group">
-          <label>Contraseña</label>
-          <input v-model="form.password" type="password" required />
-        </div>
-
-        <!-- Campo opcional si es empresa o trabajador -->
-        <div v-if="activeForm === 'user'" class="form-group">
-          <label>Rol del Usuario</label>
-          <select v-model="form.role" required>
-            <option disabled value="">Seleccione</option>
-            <option value="empresa">Empresa</option>
-            <option value="trabajador">Trabajador</option>
-          </select>
-        </div>
-
-        <button type="submit">Crear {{ activeForm === 'admin' ? 'Administrador' : 'Usuario' }}</button>
+        <button type="submit">
+          Crear {{ activeForm === 'admin' ? 'Administrador' : 'Usuario' }}
+        </button>
       </form>
 
       <p v-if="message" class="message">{{ message }}</p>
@@ -55,58 +104,98 @@
 </template>
 
 <script>
-import { computed } from 'vue'
+import { ref, reactive, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import { ref, reactive, watch } from 'vue'
-import api from '@/assets/domains/auth/services/api.js'
 
 export default {
   name: 'AdminDashboard',
   setup() {
-    const authStore = useAuthStore()
     const router = useRouter()
+    const authStore = useAuthStore()
     const user = computed(() => authStore.user)
 
-    const handleLogout = () => {
-      authStore.logout()
-      router.push('/')
-    }
-
-    const activeForm = ref('admin') // o 'user'
+    const activeForm = ref('admin')
     const message = ref('')
 
     const form = reactive({
-      fullName: '',
+      // Comunes
       email: '',
       password: '',
-      role: ''
+      role: '',
+
+      // Solo para usuario
+      name: '',
+      lastName: '',
+      age: '',
+      dni: '',
+      gender: '',
+      location: '',
+      phoneNumber: '',
+      workEmail: '',
+      personalEmail: '',
+      occupation: '',
+      area: ''
     })
 
-    // Limpiar el formulario al cambiar
     watch(activeForm, () => {
-      form.fullName = ''
-      form.email = ''
-      form.password = ''
-      form.role = ''
+      for (let key in form) {
+        form[key] = ''
+      }
       message.value = ''
     })
 
+    const handleLogout = () => {
+      authStore.logout()
+      router.push('/login')
+    }
+
     const handleSubmit = async () => {
-      const dataToSend = {
-        fullName: form.fullName,
-        email: form.email,
-        password: form.password,
-        role: activeForm.value === 'admin' ? 'administrativo' : form.role
+      const roleMap = {
+        admin: 'MANAGER',
+        empresa: 'ADMIN',
+        trabajador: 'CLIENT'
       }
 
+      const payload =
+        activeForm.value === 'admin'
+          ? {
+              email: form.email,
+              password: form.password,
+              role: roleMap['admin']
+            }
+          : {
+              name: form.name,
+              lastName: form.lastName,
+              age: form.age,
+              dni: form.dni,
+              gender: form.gender,
+              location: form.location,
+              phoneNumber: form.phoneNumber,
+              workEmail: form.workEmail,
+              personalEmail: form.personalEmail,
+              occupation: form.occupation,
+              area: form.area,
+              role: roleMap[form.role]
+            }
+
       try {
-        const response = await api.post('/users', dataToSend)
-        console.log('Respuesta del backend:', response.data)
-        message.value = 'Cuenta creada correctamente'
-      } catch (error) {
-        console.error('Error al crear la cuenta:', error.response?.data || error.message)
-        message.value = 'Error al crear la cuenta'
+        const res = await fetch('http://localhost:8100/api/v1/users/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authStore.token}`
+          },
+          body: JSON.stringify(payload)
+        })
+
+        if (!res.ok) throw new Error('Error al crear usuario')
+
+        const result = await res.json()
+        message.value = result.message || 'Usuario creado correctamente'
+      } catch (err) {
+        console.error(err)
+        message.value = 'Error al crear cuenta'
       }
     }
 
@@ -114,15 +203,13 @@ export default {
       activeForm,
       form,
       handleSubmit,
-      message,
-      user,
       handleLogout,
-      api
+      user,
+      message
     }
   }
 }
 </script>
-
 
 <style scoped>
 .admin-dashboard {

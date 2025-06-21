@@ -1,40 +1,46 @@
-import { mockUsers } from '../mock/users'
+import axios from 'axios'
+
+const API_URL = 'http://localhost:8100/api/v1'
 
 export class AuthService {
   static async login(email, password) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const user = mockUsers.find(u =>
-          u.email === email && u.password === password
-        )
+    try {
+      const response = await axios.post(`${API_URL}/auth/sign-in`, { email, password })
 
-        if (user) {
-          resolve({
-            success: true,
-            user: {
-              id: user.id,
-              email: user.email,
-              name: user.name,
-              role: user.role,
-              companyId: user.companyId
-            },
-            token: `mock-token-${user.id}`
-          })
-        } else {
-          resolve({
-            success: false,
-            error: 'Credenciales incorrectas'
-          })
+      const { token, username, roles, id, employeeId } = response.data
+
+      return {
+        success: true,
+        token,
+        user: {
+          id,
+          email: username,
+          role: roles?.[0] ?? null,
+          employeeId
         }
-      }, 500) // Simulamos delay de red
-    })
+      }
+    } catch (e) {
+      console.error('Login error:', e.response?.data || e)
+      return {
+        success: false,
+        error: e.response?.data?.message || 'Error al iniciar sesión'
+      }
+    }
   }
 
-  static async getUserById(id) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(mockUsers.find(u => u.id === id) || null)
-      }, 300)
-    })
+  static async createUser(userData, token) {
+    try {
+      const response = await axios.post(`${API_URL}/users/create`, userData, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      return { success: true, message: response.data.message }
+    } catch (e) {
+      return {
+        success: false,
+        error: e.response?.data?.message || 'Error al crear usuario'
+      }
+    }
   }
 }
