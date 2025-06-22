@@ -119,19 +119,22 @@
 
      <!-- Progresos - Versión Desktop -->
     <div class="item item-4 desktop-only">
-      <h3 class="title">Empleados destacados</h3>
+      <h3 class="title">Transacciones Recientes</h3>
       <div class="header-row">
-        <span>Nombre y rol</span>
-        <span>Recompensa</span>
+        <span>Nombre</span>
+        <span>Código de Transacción</span>
+        <span>Monto</span>
       </div>
-      <div class="employee-list">
-        <div class="employee-item" v-for="(employee, index) in employees" :key="index">
-          <div>
-            <p class="name">{{ employee.name }}</p>
-            <p class="role">{{ employee.role }}</p>
+      <div class="transaction-list">
+        <div class="transaction-item" v-for="(tx, index) in recentTransactions" :key="index">
+          <div class="tx-name">
+            <p class="name">{{ tx.name }}</p>
           </div>
-          <div>
-            <p class="reward">{{ employee.reward }} pts</p>
+          <div class="tx-code">
+            <p class="code">{{ tx.transactionCode }}</p>
+          </div>
+          <div class="tx-amount">
+            <p class="amount">{{ tx.points }} pts</p>
           </div>
         </div>
       </div>
@@ -179,9 +182,12 @@ export default {
       { text: 'Capacitación finalizada', progress: 90, reward: 300 },
       { text: 'Trabajo en equipo', progress: 100, reward: 500 }
     ])
-    const employees = ref([
-      { name: 'Pedro R.', role: 'QA', reward: 300 },
-      { name: 'Carmen T.', role: 'Diseñadora UX', reward: 400 }
+    const recentTransactions = ref([
+      { name: 'Ana Torres', transactionCode: '0x1A3F9...', points: 150 },
+      { name: 'Luis Pérez', transactionCode: '0x2B4C8...', points: 200 },
+      { name: 'María López', transactionCode: '0x3D5E7...', points: 350 },
+      { name: 'Carlos Sánchez', transactionCode: '0x4F6A1...', points: 100 },
+      { name: 'Laura Jiménez', transactionCode: '0x5G8H2...', points: 250 }
     ])
 
 
@@ -281,7 +287,7 @@ export default {
       editUser,
       medals,
       personalAchievements,
-      employees
+      recentTransactions
     };
   }
 };
@@ -706,6 +712,30 @@ export default {
   font-weight: 500;
   margin-top: 4px;
 }
+
+.transaction-header-row,
+.transaction-item {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr; /* Ajusta los tamaños como gustes */
+  padding: 8px 52px;
+  gap: 12px;
+  align-items: center;
+}
+
+.transaction-header-row {
+  font-weight: bold;
+  border-bottom: 2px solid #ccc;
+  margin-bottom: 10px;
+}
+
+.transaction-item {
+  border-bottom: 1px solid #eee;
+}
+
+.transaction-item:last-child {
+  border-bottom: none;
+}
+
 
 /* Modal */
 .modal-overlay {
