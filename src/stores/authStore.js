@@ -32,7 +32,7 @@ export const useAuthStore = defineStore('auth', {
         if (!success) throw new Error(error)
 
         // Si viene roles como array, asigna el primero
-        user.role = Array.isArray(user.roles) ? user.roles[0] : user.role
+        user.role = Array.isArray(user.role) ? user.role[0] : user.role
 
         this.user = user
         this.token = token
@@ -59,9 +59,9 @@ export const useAuthStore = defineStore('auth', {
     getDashboardRoute() {
       const role = this.user?.role
       const routes = {
-        MANAGER: '/admin-dashboard',
-        ADMIN: '/company-dashboard',
-        CLIENT: '/employee-dashboard'
+        ADMIN: '/admin-dashboard',
+        COMPANY: '/company-dashboard',
+        EMPLOYEE: '/employee-dashboard'
       }
       return routes[role] || '/login'
     }

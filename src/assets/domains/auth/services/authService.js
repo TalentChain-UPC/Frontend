@@ -1,7 +1,7 @@
 // src/assets/domains/auth/services/authService.js
 import axios from 'axios'
 
-const API_URL = 'http://localhost:8100/api/v1'
+const API_URL = 'http://localhost:8080/api/v1'
 
 export class AuthService {
   static async login(email, password) {

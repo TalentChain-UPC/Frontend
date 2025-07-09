@@ -22,19 +22,19 @@ const routes = [
     path: '/admin-dashboard',
     name: 'admin-dashboard',
     component: () => import('@/assets/domains/auth/views/dashboard/AdminDashboard.vue'),
-    meta: { requiresAuth: true, allowedRoles: ['MANAGER'] }
+    meta: { requiresAuth: true, allowedRoles: ['ADMIN'] }
   },
   {
     path: '/company-dashboard',
     name: 'company-dashboard',
     component: () => import('@/assets/domains/auth/views/dashboard/CompanyDashboard.vue'),
-    meta: { requiresAuth: true, allowedRoles: ['ADMIN'] }
+    meta: { requiresAuth: true, allowedRoles: ['COMPANY'] }
   },
   {
     path: '/employee-dashboard',
     name: 'employee-dashboard',
     component: () => import('@/assets/domains/auth/views/dashboard/EmployeeDashboard.vue'),
-    meta: { requiresAuth: true, allowedRoles: ['CLIENT'] }
+    meta: { requiresAuth: true, allowedRoles: ['EMPLOYEE'] }
   },
   {
     path: '/:pathMatch(.*)*',
