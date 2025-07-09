@@ -1,21 +1,22 @@
 <template>
   <AppNavbar />
+
   <div class="grid">
-    <!-- Perfil -->
-    <div class="item item-0 desktop-only profile-card">
+    <!-- Perfil del usuario -->
+    <div class="item item-0 profile-card">
       <div class="profile-top">
         <img src="https://randomuser.me/api/portraits/men/44.jpg" class="profile-pic" />
         <div class="profile-info">
-          <h2>{{ user.name }}</h2>
+          <h2>{{ user.id }}</h2>
           <p>{{ user.email }}</p>
-          <p>{{ user.puesto }}</p>
+          <p>{{ user.role }}</p>
           <div class="progress-bar">
             <div class="progress-fill" style="width: 60%;"></div>
           </div>
           <span class="progress-text">40% para subir de nivel</span>
         </div>
       </div>
-      <button class="edit-btn" @click="openModal">Editar perfil</button>
+      <button class="edit-btn" @click="openEditProfileModal">Editar perfil</button>
     </div>
 
     <!-- Medallas -->
@@ -28,9 +29,19 @@
 
     <!-- Logros personales -->
     <div class="item item-2 personal-achievements-card">
-      <h3 class="personal-achievements-header">Logros personales</h3>
+      <div class="personal-achievements-header">
+        <h3>Logros por completar</h3>
+        <button class="achivementsmodal" @click="openAchievementsModal">
+          Ver todos los logros
+        </button>
+      </div>
+
       <div class="personal-achievements-container scrollable-container">
-        <div class="goal-tracker" v-for="(goal, index) in personalAchievements" :key="index">
+        <div
+          class="goal-tracker"
+          v-for="(goal, index) in personalAchievements"
+          :key="index"
+        >
           <div class="goal-progress-circle">
             <span class="goal-progress-count">{{ goal.progress }}%</span>
           </div>
@@ -45,29 +56,8 @@
       </div>
     </div>
 
-    <!-- Trayectoria - Versión Mobile -->
-    <div class="item mobile-only">
-      <div class="featured-trajectory">
-        <h3 class="title">Top 3</h3>
-        <div class="podium-container">
-          <div class="podium-block silver" v-if="sortedPeople[1]">
-            <div class="position">2°</div>
-            <div class="name">{{ sortedPeople[1].name }}</div>
-          </div>
-          <div class="podium-block gold" v-if="sortedPeople[0]">
-            <div class="position">1°</div>
-            <div class="name">{{ sortedPeople[0].name }}</div>
-          </div>
-          <div class="podium-block bronze" v-if="sortedPeople[2]">
-            <div class="position">3°</div>
-            <div class="name">{{ sortedPeople[2].name }}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Trayectoria - Versión Desktop -->
-    <div class="item item-3 desktop-only">
+    <!-- Trayectoria destacada (Versión Desktop) -->
+    <div class="item item-3">
       <div class="featured-trajectory">
         <h3 class="title">Trayectoria destacada</h3>
         <div class="podium-container">
@@ -96,12 +86,16 @@
       </div>
     </div>
 
-    <!-- Empleados destacados -->
+    <!-- Progresos -->
     <div class="item item-5 featured-employees">
       <div class="personal-achievements-card">
         <h3 class="personal-achievements-header">Mis Progresos</h3>
         <div class="personal-achievements-container">
-          <div v-for="goal in personalGoals" :key="goal.id" class="goal-tracker">
+          <div
+            v-for="goal in personalGoals"
+            :key="goal.id"
+            class="goal-tracker"
+          >
             <div class="goal-progress-circle">
               <span class="goal-progress-count">{{ goal.progress }}</span>
             </div>
@@ -117,8 +111,8 @@
       </div>
     </div>
 
-     <!-- Progresos - Versión Desktop -->
-    <div class="item item-4 desktop-only">
+    <!-- Transacciones recientes -->
+    <div class="item item-4">
       <h3 class="title">Transacciones Recientes</h3>
       <div class="header-row">
         <span>Nombre</span>
@@ -126,43 +120,33 @@
         <span>Monto</span>
       </div>
       <div class="transaction-list">
-        <div class="transaction-item" v-for="(tx, index) in recentTransactions" :key="index">
-          <div class="tx-name">
-            <p class="name">{{ tx.name }}</p>
-          </div>
-          <div class="tx-code">
-            <p class="code">{{ tx.transactionCode }}</p>
-          </div>
-          <div class="tx-amount">
-            <p class="amount">{{ tx.points }} pts</p>
-          </div>
+        <div
+          class="transaction-item"
+          v-for="(tx, index) in recentTransactions"
+          :key="index"
+        >
+          <div class="tx-name"><p class="name">{{ tx.name }}</p></div>
+          <div class="tx-code"><p class="code">{{ tx.transactionCode }}</p></div>
+          <div class="tx-amount"><p class="amount">{{ tx.points }} pts</p></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal -->
-  <div class="modal-overlay" v-if="showModal">
-    <div class="modal-content">
-      <h2>Editar perfil</h2>
-      <div class="form-group">
-        <label>Nombre completo</label>
-        <input v-model="user.name" />
-      </div>
-      <div class="form-group">
-        <label>Email</label>
-        <input v-model="user.email" />
-      </div>
-      <div class="form-group">
-        <label>Rol</label>
-        <input v-model="user.puesto">
-      </div>
-      <div class="modal-actions">
-        <button class="save-btn" @click="saveChanges">Guardar</button>
-        <button class="cancel-btn" @click="closeModal">Cancelar</button>
-      </div>
-    </div>
-  </div>
+  <!-- Modal separado -->
+  <EditProfileModal
+    v-if="showEditProfileModal"
+    :user="user"
+    @save="handleSave"
+    @close="closeEditProfileModal"
+  />
+
+  <AchievementsModal
+    v-if="showAchievementsModal"
+    :visible="showAchievementsModal"
+    :achievements="personalAchievements"
+    @close="closeAchievementsModal"
+  />
 </template>
 
 <script>
@@ -170,33 +154,41 @@ import { useAuthStore } from '@/stores/authStore';
 import { useRouter } from 'vue-router';
 import AppNavbar from '@/shared/components/AppNavbar.vue';
 import { computed, ref, reactive } from 'vue';
+import EditProfileModal from '@/assets/components/EditProfileModal.vue';
+import AchievementsModal from '@/assets/components/AchievementsModal.vue';
 
 export default {
   components: {
-    AppNavbar
+    AppNavbar,
+    EditProfileModal,
+    AchievementsModal
   },
   setup() {
+    const authStore = useAuthStore();
+    const router = useRouter();
 
-    const medals = ref([{}, {}, {},{},{},{}])
+    const medals = ref([{}, {}, {}, {}, {}, {}]);
+
     const personalAchievements = ref([
       { text: 'Capacitación finalizada', progress: 90, reward: 300 },
-      { text: 'Trabajo en equipo', progress: 100, reward: 500 }
-    ])
+      { text: 'Trabajo en equipo', progress: 100, reward: 500 },
+      { text: 'Asistencia perfecta este mes', progress: 75, reward: 200 },
+      { text: 'Entrega puntual de proyectos', progress: 60, reward: 250 },
+      { text: 'Participación en reuniones', progress: 80, reward: 180 },
+      { text: 'Feedback positivo de clientes', progress: 50, reward: 350 },
+      { text: 'Cumplimiento de objetivos trimestrales', progress: 40, reward: 400 },
+      { text: 'Innovación en procesos', progress: 30, reward: 450 },
+      { text: 'Mentoría a compañeros', progress: 55, reward: 220 },
+      { text: 'Uso eficiente de recursos', progress: 70, reward: 150 }
+    ]);
+
     const recentTransactions = ref([
       { name: 'Ana Torres', transactionCode: '0x1A3F9...', points: 150 },
       { name: 'Luis Pérez', transactionCode: '0x2B4C8...', points: 200 },
       { name: 'María López', transactionCode: '0x3D5E7...', points: 350 },
       { name: 'Carlos Sánchez', transactionCode: '0x4F6A1...', points: 100 },
       { name: 'Laura Jiménez', transactionCode: '0x5G8H2...', points: 250 }
-    ])
-
-
-    const achievements = [
-      { id: 1, text: "Asistencia perfecta este mes", progress: "12/30", points: 140 },
-      { id: 2, text: "Capacitación completada", progress: "3/5", points: 200 },
-      { id: 3, text: "Proyectos entregados", progress: "5/8", points: 320 },
-      { id: 4, text: "Feedback positivo", progress: "8/10", points: 150 },
-    ];
+    ]);
 
     const people = [
       { name: "Luefa M.", points: 20000 },
@@ -209,23 +201,64 @@ export default {
     const personalGoals = [
       { id: 1, text: "Asistencia perfecta este mes", progress: "12/30", points: 140 },
       { id: 2, text: "Días consecutivos activo", progress: "21/30", points: 210 },
-      { id: 3, text: "Cursos completados", progress: "2/5", points: 300 },
+      { id: 3, text: "Cursos completados", progress: "2/5", points: 300 }
     ];
 
     const trajectoryData = [
       { name: "Olivia Rhye", role: "Product Designer", status: "Certificación", reward: "120 monedas" },
       { name: "Phoenix Baker", role: "Product Manager", status: "Título", reward: "120 monedas" },
       { name: "Lana Steiner", role: "Frontend Developer", status: "Capacitación", reward: "80 monedas" },
-      { name: "Demi Wilkinson", role: "Backend Developer", status: "Diplomado", reward: "200 monedas" },
+      { name: "Demi Wilkinson", role: "Backend Developer", status: "Diplomado", reward: "200 monedas" }
     ];
 
-    // Versiones móviles
-    const mobileAchievements = computed(() => achievements.slice(0, 2));
-    const mobileGoals = computed(() => personalGoals.slice(0, 2));
-    const mobileEmployees = computed(() => trajectoryData.slice(0, 3));
+    // ✅ Estado separado para cada modal
+    const showEditProfileModal = ref(false);
+    const showAchievementsModal = ref(false);
 
-    const authStore = useAuthStore();
-    const router = useRouter();
+    const editUser = reactive({
+      name: '',
+      email: '',
+      puesto: ''
+    });
+
+    // ✅ Abrir modal de editar perfil
+    const openEditProfileModal = () => {
+      editUser.name = authStore.user.name;
+      editUser.email = authStore.user.email;
+      editUser.puesto = authStore.user.puesto;
+      showEditProfileModal.value = true;
+    };
+
+    const closeEditProfileModal = () => {
+      showEditProfileModal.value = false;
+    };
+
+    const openAchievementsModal = () => {
+      console.log("Abriendo modal de logros...");
+      showAchievementsModal.value = true;
+    };
+
+    const closeAchievementsModal = () => {
+      showAchievementsModal.value = false;
+    };
+
+    const saveChanges = () => {
+      authStore.setUser({
+        name: editUser.name,
+        email: editUser.email,
+        puesto: editUser.puesto
+      });
+      showEditProfileModal.value = false;
+    };
+
+    const handleSave = (editedData) => {
+      authStore.setUser({
+        name: editedData.name,
+        email: editedData.email,
+        puesto: editedData.puesto
+      });
+      showEditProfileModal.value = false;
+    };
 
     const logout = () => {
       authStore.logout();
@@ -238,56 +271,31 @@ export default {
         .slice(0, 3);
     });
 
-    const user = reactive({
-      name: 'Juan Pérez',
-      email: 'trabajador@empresa.com',
-      puesto: 'Desarrollador',
-    });
-
-    const showModal = ref(false);
-    const editUser = reactive({
-      name: '',
-      email: '',
-      puesto: ''
-    });
-
-    const openModal = () => {
-      editUser.name = user.name;
-      editUser.email = user.email;
-      editUser.puesto = user.puesto;
-      showModal.value = true;
-    };
-
-    const closeModal = () => {
-      showModal.value = false;
-    };
-
-    const saveChanges = () => {
-      user.name = editUser.name;
-      user.email = editUser.email;
-      user.puesto = editUser.puesto;
-      showModal.value = false;
-    };
+    const mobileGoals = computed(() => personalGoals.slice(0, 2));
+    const mobileEmployees = computed(() => trajectoryData.slice(0, 3));
 
     return {
       user: authStore.user,
       logout,
-      achievements,
-      mobileAchievements,
       people,
       personalGoals,
       mobileGoals,
       trajectoryData,
       mobileEmployees,
       sortedPeople,
-      openModal,
-      closeModal,
-      saveChanges,
-      showModal,
-      editUser,
       medals,
       personalAchievements,
-      recentTransactions
+      recentTransactions,
+      editUser,
+      // Modal flags y métodos
+      showEditProfileModal,
+      showAchievementsModal,
+      openEditProfileModal,
+      closeEditProfileModal,
+      openAchievementsModal,
+      closeAchievementsModal,
+      saveChanges,
+      handleSave
     };
   }
 };
@@ -390,7 +398,10 @@ export default {
 }
 
 .edit-btn {
-  margin-top: 16px;
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  margin-top: 0;
   padding: 8px 16px;
   background: transparent;
   border: 1px solid #e91e63;
@@ -557,12 +568,6 @@ export default {
   margin-bottom: 8px;
 }
 
-.name {
-  font-size: 0.9rem;
-  font-weight: 500;
-  margin: 4px 0;
-}
-
 .points {
   font-size: 0.9rem;
   color: #444;
@@ -587,12 +592,39 @@ export default {
 }
 
 .personal-achievements-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   font-size: 1rem;
   font-weight: 600;
   margin: 0 0 16px 0;
   padding-bottom: 8px;
   border-bottom: 1px solid #f0f0f0;
   color: #2c3e50;
+}
+
+.personal-achievements-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.achivementsmodal {
+  background-color: #e91e63;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.achivementsmodal:hover {
+  background-color: #dd1558;
+  transform: translateY(-1px);
 }
 
 .personal-achievements-container {
@@ -716,7 +748,7 @@ export default {
 .transaction-header-row,
 .transaction-item {
   display: grid;
-  grid-template-columns: 1fr 2fr 1fr; /* Ajusta los tamaños como gustes */
+  grid-template-columns: 1fr 2fr 1fr;
   padding: 8px 52px;
   gap: 12px;
   align-items: center;
@@ -836,14 +868,14 @@ export default {
   background-color: #d7372f;
 }
 
-/* NUEVOS ESTILOS PARA SCROLL */
+/* Contenedor con scroll */
 .scrollable-container {
-  max-height: 300px; /* ajusta según tu diseño */
+  max-height: 300px;
   overflow-y: auto;
-  padding-right: 0.5rem; /* espacio para que no se corte el contenido */
+  padding-right: 0.5rem;
 }
 
-/* Opcional: estiliza la barra de scroll para que se vea más limpia */
+/*estiliza la barra de scroll para que se vea más limpia */
 .scrollable-container::-webkit-scrollbar {
   width: 6px;
 }
@@ -907,7 +939,8 @@ export default {
 
   /* Medals */
   .medals-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 50%;
   }
 
   /* Podium */

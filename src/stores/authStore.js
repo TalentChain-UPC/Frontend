@@ -1,3 +1,4 @@
+// src/stores/authStore.js
 import { defineStore } from 'pinia'
 import { AuthService } from '@/assets/domains/auth/services/authService'
 
@@ -30,7 +31,7 @@ export const useAuthStore = defineStore('auth', {
 
         if (!success) throw new Error(error)
 
-        // 🔥 Asignar el rol principal si viene como array
+        // Si viene roles como array, asigna el primero
         user.role = Array.isArray(user.roles) ? user.roles[0] : user.role
 
         this.user = user
