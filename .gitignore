@@ -1,0 +1,11 @@
+# Ignorar dependencias
+node_modules/
+
+# Ignorar carpetas de build
+dist/
+build/
+
+# Otros típicos
+.env
+.DS_Store
+*.log
