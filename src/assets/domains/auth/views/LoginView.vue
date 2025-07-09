@@ -283,5 +283,8 @@ form {
   .login-form {
     padding: 40px 30px;
   }
+  .form-group{
+    width: 90%;
+  }
 }
 </style>

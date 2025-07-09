@@ -4,10 +4,10 @@
     <aside class="sidebar">
       <h2>Panel Admin</h2>
       <nav>
-        <button @click="activeForm = 'admin'" :class="{ active: activeForm === 'admin' }">
+        <button class="switch" @click="activeForm = 'admin'" :class="{ active: activeForm === 'admin' }">
           Crear Administrador
         </button>
-        <button @click="activeForm = 'user'" :class="{ active: activeForm === 'user' }">
+        <button class="switch" @click="activeForm = 'user'" :class="{ active: activeForm === 'user' }">
           Crear Usuario
         </button>
         <button class="logout" @click="handleLogout">Cerrar Sesión</button>
@@ -216,8 +216,10 @@ export default {
   display: flex;
   min-height: 100vh;
   font-family: 'Poppins', sans-serif;
+  flex-wrap: wrap; /* Para soportar wrapping en móvil */
 }
 
+/* Sidebar en escritorio */
 .sidebar {
   width: 250px;
   background-color: #2c3e50;
@@ -225,13 +227,31 @@ export default {
   padding: 30px 20px;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
-.sidebar h2 {
-  margin-bottom: 30px;
+/* Botón de cerrar sesión fijo abajo */
+.logout {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background-color: #ef4444;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-.sidebar nav button {
+.logout:hover {
+  background-color: #ec2323;
+}
+
+
+/* Botones del nav */
+.switch {
   background: none;
   border: none;
   color: white;
@@ -241,15 +261,16 @@ export default {
   text-align: left;
 }
 
-.sidebar nav button.active {
+.switch.active {
   font-weight: bold;
   color: #1abc9c;
 }
 
-.sidebar nav button:hover {
+.switch:hover {
   color: #1abc9c;
 }
 
+/* Contenido principal */
 .content {
   flex: 1;
   padding: 40px;
@@ -295,18 +316,49 @@ button[type="submit"]:hover {
   color: green;
 }
 
-.logout {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  background-color: #ef4444;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s;
+/* Tablet y móvil */
+@media (max-width: 768px) {
+  .admin-dashboard {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 20px;
+    position: relative;
+  }
+
+  .sidebar h2 {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  .sidebar nav {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .logout {
+    /* Posicionamiento normal, no absoluto */
+    position: static;
+    margin-left: auto;
+    padding: 8px 14px;
+    font-size: 14px;
+  }
+
+  .switch {
+    padding: 8px 12px;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .content {
+    padding: 20px;
+  }
 }
 
 </style>
