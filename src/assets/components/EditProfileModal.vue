@@ -2,17 +2,29 @@
   <div class="modal-overlay">
     <div class="modal-content">
       <h2>Editar perfil</h2>
+      <div class="profile-photo-section" style="text-align:center; margin-bottom:20px;">
+        <img
+          :src="localUser.photoPreview || localUser.photo || defaultPhoto"
+          alt="Foto de perfil"
+          class="profile-pic-edit"
+        />
+        <input type="file" accept="image/*" @change="onPhotoChange" style="margin-top:10px;" />
+      </div>
       <div class="form-group">
-        <label>Nombre completo</label>
+        <label>Nombre</label>
         <input v-model="localUser.name" />
+      </div>
+      <div class="form-group">
+        <label>Apellido</label>
+        <input v-model="localUser.lastName" />
+      </div>
+      <div class="form-group">
+        <label>Ocupación</label>
+        <input v-model="localUser.occupation" />
       </div>
       <div class="form-group">
         <label>Email</label>
         <input v-model="localUser.email" />
-      </div>
-      <div class="form-group">
-        <label>Rol</label>
-        <input v-model="localUser.puesto" />
       </div>
       <div class="modal-actions">
         <button class="save-btn" @click="save">Guardar</button>
@@ -23,7 +35,7 @@
 </template>
 
 <script setup>
-import { reactive, watch } from 'vue'
+import { reactive, watch, ref } from 'vue'
 
 const props = defineProps({
   user: {
@@ -34,26 +46,50 @@ const props = defineProps({
 
 const emits = defineEmits(['save', 'close'])
 
+const defaultPhoto = ref('https://randomuser.me/api/portraits/men/44.jpg')
+
 // Creamos una copia local para editar sin modificar el original hasta "Guardar"
 const localUser = reactive({
-  name: props.user.name,
-  email: props.user.email,
-  puesto: props.user.puesto
+  name: props.user.name || '',
+  lastName: props.user.lastName || '',
+  occupation: props.user.occupation || '',
+  email: props.user.email || '',
+  photo: props.user.photo || '',
+  photoFile: null,
+  photoPreview: ''
 })
 
 // Si el usuario cambia externamente mientras el modal está abierto, actualizamos los campos
 watch(
   () => props.user,
   (newVal) => {
-    localUser.name = newVal.name
-    localUser.email = newVal.email
-    localUser.puesto = newVal.puesto
+    localUser.name = newVal.name || ''
+    localUser.lastName = newVal.lastName || ''
+    localUser.occupation = newVal.occupation || ''
+    localUser.email = newVal.email || ''
+    localUser.photo = newVal.photo || ''
+    localUser.photoFile = null
+    localUser.photoPreview = ''
   },
   { deep: true, immediate: true }
 )
 
+const onPhotoChange = (e) => {
+  const file = e.target.files[0]
+  if (file) {
+    localUser.photoFile = file
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      localUser.photoPreview = ev.target.result
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
 const save = () => {
-  emits('save', { ...localUser })
+  // Si hay una nueva foto, la incluimos en el objeto emitido
+  const userToSave = { ...localUser }
+  emits('save', userToSave)
 }
 </script>
 
@@ -81,6 +117,22 @@ const save = () => {
   max-width: 500px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
   animation: slideDown 0.3s ease;
+}
+
+.profile-photo-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.profile-pic-edit {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e91e63;
+  margin-bottom: 8px;
 }
 
 @keyframes slideDown {

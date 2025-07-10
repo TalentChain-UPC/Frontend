@@ -8,13 +8,16 @@ export class AuthService {
     try {
       const response = await axios.post(`${API_URL}/auth/sign-in`, { email, password })
 
-      const { token, username, roles, id, employeeId } = response.data
+      const { token, username,name,last_name,occupation,roles, id, employeeId } = response.data
 
       return {
         success: true,
         token,
         user: {
           id,
+          name,
+          last_name,
+          occupation,
           email: username,
           role: roles?.[0] ?? null,
           employeeId
@@ -44,4 +47,21 @@ export class AuthService {
       }
     }
   }
+
+  static async fetchEmployeeProfile(employee_id, token) {
+    try {
+      const response = await axios.get(`${API_URL}/employees/${employee_id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      return { success: true, user: response.data };
+    } catch (e) {
+      return {
+        success: false,
+        error: e.response?.data?.message || 'Error al obtener perfil de empleado'
+      };
+    }
+  }
 }
+

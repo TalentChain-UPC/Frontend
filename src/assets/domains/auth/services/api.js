@@ -7,4 +7,16 @@ const api = axios.create({
   }
 })
 
+// Contratos
+export const createContract = (payload, token) =>
+  api.post('/contracts', payload, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+
+// Evidencias
+export const createEvidence = (payload, token) =>
+  api.post('/evidences', payload, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+
 export default api

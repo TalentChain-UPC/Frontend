@@ -8,7 +8,7 @@
         &#9776;
       </button>
       <div class="navbar-right" :class="{ open: isMenuOpen }">
-        <button class="catalog">
+        <button class="catalog" @click="goToCatalog">
           Catálogo
         </button>
         <button class="logout" @click="handleLogout">
@@ -40,10 +40,15 @@ export default {
       isMenuOpen.value = !isMenuOpen.value
     }
 
+    const goToCatalog = () => {
+      router.push('/catalogo')
+    }
+
     return {
       handleLogout,
       isMenuOpen,
-      toggleMenu
+      toggleMenu,
+      goToCatalog
     }
   }
 }

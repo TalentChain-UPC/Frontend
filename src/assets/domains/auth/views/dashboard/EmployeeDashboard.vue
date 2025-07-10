@@ -1,15 +1,19 @@
 <template>
   <AppNavbar />
 
+  <div class="dashboard-header">
+    <button class="contracts-btn" @click="goToContracts">Ver mis contratos</button>
+  </div>
+
   <div class="grid">
     <!-- Perfil del usuario -->
     <div class="item item-0 profile-card">
       <div class="profile-top">
         <img src="https://randomuser.me/api/portraits/men/44.jpg" class="profile-pic" />
         <div class="profile-info">
-          <h2>{{ user.id }}</h2>
+          <h2>{{ user.name }} {{ user.lastName }}</h2>
           <p>{{ user.email }}</p>
-          <p>{{ user.role }}</p>
+          <p>{{ user.occupation }}</p>
           <div class="progress-bar">
             <div class="progress-fill" style="width: 60%;"></div>
           </div>
@@ -274,6 +278,10 @@ export default {
     const mobileGoals = computed(() => personalGoals.slice(0, 2));
     const mobileEmployees = computed(() => trajectoryData.slice(0, 3));
 
+    const goToContracts = () => {
+      router.push({ name: 'mis-contratos' });
+    };
+
     return {
       user: authStore.user,
       logout,
@@ -295,7 +303,8 @@ export default {
       openAchievementsModal,
       closeAchievementsModal,
       saveChanges,
-      handleSave
+      handleSave,
+      goToContracts
     };
   }
 };
@@ -414,6 +423,22 @@ export default {
 
 .edit-btn:hover {
   background-color: rgba(233, 30, 99, 0.1);
+}
+
+.contracts-btn {
+  margin-top: 12px;
+  background: #e91e63;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.contracts-btn:hover {
+  background: #d015b9;
 }
 
 /* Medals Card */
@@ -1002,5 +1027,12 @@ export default {
   .medals-grid {
     grid-template-columns: repeat(3, 1fr);
   }
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin: 18px 18px 0 0;
 }
 </style>

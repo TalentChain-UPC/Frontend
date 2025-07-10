@@ -4,11 +4,11 @@
     <aside class="sidebar">
       <h2>Panel Admin</h2>
       <nav>
-        <button class="switch" @click="activeForm = 'admin'" :class="{ active: activeForm === 'admin' }">
+        <button @click="activeForm = 'admin'" class="switch" :class="{ active: activeForm === 'admin' }">
           Crear Administrador
         </button>
-        <button class="switch" @click="activeForm = 'user'" :class="{ active: activeForm === 'user' }">
-          Crear Usuario
+        <button @click="activeForm = 'company'" class="switch" :class="{ active: activeForm === 'company' }">
+          Crear Empresa
         </button>
         <button class="logout" @click="handleLogout">Cerrar Sesión</button>
       </nav>
@@ -16,7 +16,15 @@
 
     <!-- Main Content -->
     <main class="content">
-      <h1>{{ activeForm === 'admin' ? 'Crear Cuenta de Administrador' : 'Crear Cuenta de Usuario' }}</h1>
+      <h1>
+        {{
+          activeForm === 'admin'
+            ? 'Crear Cuenta de Administrador'
+            : activeForm === 'company'
+            ? 'Crear Empresa'
+            : ''
+        }}
+      </h1>
 
       <form @submit.prevent="handleSubmit">
         <!-- Formulario de Administrador -->
@@ -31,51 +39,65 @@
           </div>
         </template>
 
-        <!-- Formulario de Usuario -->
-        <template v-else>
+        <!-- Formulario de Empresa -->
+        <template v-else-if="activeForm === 'company'">
           <div class="form-group">
-            <label>Nombres</label>
+            <label>Nombre de la Empresa</label>
             <input v-model="form.name" type="text" required />
           </div>
           <div class="form-group">
+            <label>RUC</label>
+            <input v-model="form.ruc" type="text" required />
+          </div>
+          <div class="form-group">
+            <label>Sector</label>
+            <input v-model="form.sector" type="text" required />
+          </div>
+          <hr />
+          <h3>Datos del Empleado Principal</h3>
+          <div class="form-group">
+            <label>Nombres</label>
+            <input v-model="form.employee.name" type="text" required />
+          </div>
+          <div class="form-group">
             <label>Apellidos</label>
-            <input v-model="form.lastName" type="text" required />
+            <input v-model="form.employee.lastName" type="text" required />
           </div>
           <div class="form-group">
             <label>Edad</label>
-            <input v-model="form.age" type="number" required />
+            <input v-model="form.employee.age" type="number" required />
           </div>
           <div class="form-group">
             <label>DNI</label>
-            <input v-model="form.dni" type="text" required />
+            <input v-model="form.employee.dni" type="text" required />
           </div>
           <div class="form-group">
             <label>Género</label>
-            <input v-model="form.gender" type="text" required />
+            <input v-model="form.employee.gender" type="text" required />
           </div>
           <div class="form-group">
             <label>Ubicación</label>
-            <input v-model="form.location" type="text" required />
+            <input v-model="form.employee.location" type="text" required />
           </div>
           <div class="form-group">
             <label>Teléfono</label>
-            <input v-model="form.phoneNumber" type="text" required />
+            <input v-model="form.employee.phoneNumber" type="text" required />
           </div>
           <div class="form-group">
             <label>Email Corporativo</label>
-            <input v-model="form.workEmail" type="email" required />
+            <input v-model="form.employee.workEmail" type="email" required />
           </div>
           <div class="form-group">
             <label>Email Personal</label>
-            <input v-model="form.personalEmail" type="email" required />
+            <input v-model="form.employee.personalEmail" type="email" required />
           </div>
           <div class="form-group">
             <label>Ocupación</label>
-            <input v-model="form.occupation" type="text" required />
+            <input v-model="form.employee.occupation" type="text" required />
           </div>
           <div class="form-group">
             <label>Área</label>
-            <select v-model="form.area" required>
+            <select v-model="form.employee.area" required>
               <option disabled value="">Seleccione un área</option>
               <option value="INFORMATION_TECHNOLOGY">Tecnología</option>
               <option value="HUMAN_RESOURCES">Recursos Humanos</option>
@@ -83,18 +105,10 @@
               <option value="SALES">Ventas</option>
             </select>
           </div>
-          <div class="form-group">
-            <label>Rol</label>
-            <select v-model="form.role" required>
-              <option disabled value="">Seleccione</option>
-              <option value="empresa">Empresa</option>
-              <option value="trabajador">Trabajador</option>
-            </select>
-          </div>
         </template>
 
         <button type="submit">
-          Crear {{ activeForm === 'admin' ? 'Administrador' : 'Usuario' }}
+          Crear {{ activeForm === 'admin' ? 'Administrador' : 'Empresa' }}
         </button>
       </form>
 
@@ -115,32 +129,43 @@ export default {
     const authStore = useAuthStore()
     const user = computed(() => authStore.user)
 
+
     const activeForm = ref('admin')
     const message = ref('')
 
     const form = reactive({
-      // Comunes
+      // Para admin
       email: '',
       password: '',
-      role: '',
 
-      // Solo para usuario
+      // Para empresa
       name: '',
-      lastName: '',
-      age: '',
-      dni: '',
-      gender: '',
-      location: '',
-      phoneNumber: '',
-      workEmail: '',
-      personalEmail: '',
-      occupation: '',
-      area: ''
+      ruc: '',
+      sector: '',
+      employee: {
+        name: '',
+        lastName: '',
+        age: '',
+        dni: '',
+        gender: '',
+        location: '',
+        phoneNumber: '',
+        workEmail: '',
+        personalEmail: '',
+        occupation: '',
+        area: ''
+      }
     })
 
     watch(activeForm, () => {
       for (let key in form) {
-        form[key] = ''
+        if (typeof form[key] === 'object' && form[key] !== null) {
+          for (let subKey in form[key]) {
+            form[key][subKey] = ''
+          }
+        } else {
+          form[key] = ''
+        }
       }
       message.value = ''
     })
@@ -151,36 +176,24 @@ export default {
     }
 
     const handleSubmit = async () => {
-      const roleMap = {
-        admin: 'MANAGER',
-        empresa: 'ADMIN',
-        trabajador: 'CLIENT'
+      let payload
+      if (activeForm.value === 'admin') {
+        payload = {
+          email: form.email,
+          password: form.password,
+          role: 'ADMIN'
+        }
+      } else if (activeForm.value === 'company') {
+        payload = {
+          name: form.name,
+          ruc: form.ruc,
+          sector: form.sector,
+          employee: { ...form.employee }
+        }
       }
 
-      const payload =
-        activeForm.value === 'admin'
-          ? {
-              email: form.email,
-              password: form.password,
-              role: roleMap['admin']
-            }
-          : {
-              name: form.name,
-              lastName: form.lastName,
-              age: form.age,
-              dni: form.dni,
-              gender: form.gender,
-              location: form.location,
-              phoneNumber: form.phoneNumber,
-              workEmail: form.workEmail,
-              personalEmail: form.personalEmail,
-              occupation: form.occupation,
-              area: form.area,
-              role: roleMap[form.role]
-            }
-
       try {
-        const res = await fetch('http://localhost:8100/api/v1/users/create', {
+        const res = await fetch('http://localhost:8080/api/v1/users/create', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -189,10 +202,10 @@ export default {
           body: JSON.stringify(payload)
         })
 
-        if (!res.ok) throw new Error('Error al crear usuario')
+        if (!res.ok) throw new Error('Error al crear')
 
         const result = await res.json()
-        message.value = result.message || 'Usuario creado correctamente'
+        message.value = result.message || 'Creado correctamente'
       } catch (err) {
         console.error(err)
         message.value = 'Error al crear cuenta'
@@ -210,6 +223,7 @@ export default {
   }
 }
 </script>
+
 
 <style scoped>
 .admin-dashboard {

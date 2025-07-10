@@ -1,55 +1,54 @@
 <template>
-  <div class="login-page">
-    <div class="login-container">
-      <!-- Sección izquierda con imagen -->
-      <div class="login-image">
-        <div class="image-overlay"></div>
+  <div class="login-bg-gradient">
+    <div class="login-main-container">
+      <!-- Imagen izquierda -->
+      <div class="login-illustration">
+        <img src="/login-removebg.png" alt="login-illustration" />
       </div>
-
-      <!-- Sección derecha con formulario -->
-      <div class="login-form">
-        <div class="form-header">
-          <h1>Iniciar Sesión</h1>
-          <p>Ingresa tus credenciales para acceder</p>
-        </div>
-
+      <!-- Formulario derecha -->
+      <div class="login-card">
+        <h1 class="login-title">Iniciar Sesión</h1>
+        <p class="login-subtitle">Ingresa tus credenciales para acceder</p>
         <form @submit.prevent="handleLogin">
-          <div class="form-group">
-            <label>Correo Electrónico</label>
+          <div class="input-group">
+            <span class="input-icon">
+              <svg width="18" height="18" fill="none" stroke="#0B562F" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 8-4 8-4s8 0 8 4"/></svg>
+            </span>
             <input
               v-model="email"
               type="email"
-              placeholder="tu@email.com"
+              placeholder="Correo electrónico"
               required
-            >
+              autocomplete="username"
+            />
           </div>
-
-          <div class="form-group">
-            <label>Contraseña</label>
+          <div class="input-group">
+            <span class="input-icon">
+              <svg width="18" height="18" fill="none" stroke="#0B562F" stroke-width="2" viewBox="0 0 24 24"><rect x="6" y="10" width="12" height="8" rx="2"/><path d="M12 16v-4"/><circle cx="12" cy="13" r="1"/></svg>
+            </span>
             <input
               v-model="password"
-              type="password"
-              placeholder="••••••••"
+              :type="showPassword ? 'text' : 'password'"
+              placeholder="Contraseña"
               required
-            >
+              autocomplete="current-password"
+            />
+            <span class="input-icon input-action" @click="showPassword = !showPassword" :title="showPassword ? 'Ocultar' : 'Mostrar'">
+              <svg v-if="!showPassword" width="18" height="18" fill="none" stroke="#0B562F" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg v-else width="18" height="18" fill="none" stroke="#0B562F" stroke-width="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.77 21.77 0 0 1 5.06-6.06M1 1l22 22"/><path d="M9.53 9.53A3 3 0 0 0 12 15a3 3 0 0 0 2.47-5.47"/></svg>
+            </span>
           </div>
-
-          <div class="form-options">
-            <router-link to="/forgot-password" class="forgot-password">
-              ¿Olvidaste tu contraseña?
-            </router-link>
+          <div class="forgot-row">
+            <router-link to="/forgot-password" class="forgot-link">¿Olvidaste tu contraseña?</router-link>
           </div>
-
           <button
             type="submit"
-            class="login-button"
+            class="login-btn"
             :disabled="isLoading"
-            :class="{ loading: isLoading }"
           >
-            <span v-if="!isLoading">Ingresar</span>
+            <span v-if="!isLoading">Iniciar sesión</span>
             <div v-else class="spinner"></div>
           </button>
-
           <p v-if="error" class="error-message">{{ error }}</p>
         </form>
       </div>
@@ -68,13 +67,13 @@ export default {
     const email = ref('')
     const password = ref('')
     const error = ref(null)
+    const showPassword = ref(false)
     const router = useRouter()
     const authStore = useAuthStore()
 
     const handleLogin = async () => {
       error.value = null
       const success = await authStore.login(email.value, password.value)
-
       if (success) {
         router.push(authStore.getDashboardRoute())
       } else {
@@ -86,6 +85,7 @@ export default {
       email,
       password,
       error,
+      showPassword,
       isLoading: authStore.isLoading,
       handleLogin
     }
@@ -94,197 +94,195 @@ export default {
 </script>
 
 <style scoped>
-/* Estilos base */
-.login-page {
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+.login-bg-gradient {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(120deg, #f6fff8 0%, #fbeaff 100%);
   font-family: 'Poppins', sans-serif;
-  color: black;
-  height: 95vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: linear-gradient(135deg, rgba(67, 97, 238, 0.8) 0%, rgba(81, 45, 168, 0.8) 100%);
-  padding: 20px;
 }
 
-.login-container {
-  color: black;
+.login-main-container {
   display: flex;
-  width: 900px;
-  height: 600px;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(10, 10, 10, 0.1);
-  overflow: hidden;
-
-}
-
-/* Sección de imagen */
-.login-image {
-  flex: 1;
-  background: url('../../../../../public/login-bg1.png') center/contain no-repeat;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  min-height: 400px;
+  width: 950px;
+  height: 520px;
+  background: transparent;
+  border-radius: 18px;
   overflow: hidden;
 }
 
-.image-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-
+.login-illustration {
+  flex: 1.2;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  background: none;
+}
+.login-illustration img {
+  width: 90%;
+  max-width: 370px;
+  min-width: 220px;
+  object-fit: contain;
+  user-select: none;
 }
 
-/* Sección de formulario */
-.login-form {
+.login-card {
   flex: 1;
-  padding: 60px 50px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px 0 rgba(31, 38, 135, 0.08);
+  padding: 48px 38px 38px 38px;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
+  min-width: 320px;
+  max-width: 400px;
 }
 
-.form-header {
+.login-title {
+  color: #e6007a;
+  font-size: 1.7rem;
+  font-weight: 700;
+  margin-bottom: 8px;
   text-align: center;
-  margin-bottom: 40px;
+}
+.login-subtitle {
+  color: #222;
+  font-size: 1rem;
+  margin-bottom: 28px;
+  text-align: center;
 }
 
-.logo {
-  height: 50px;
-  margin-bottom: 20px;
-}
-
-.form-header h1 {
-  font-size: 1.8rem;
-  color: #000000;
-  margin-bottom: 10px;
-}
-
-.form-header p {
-  color: #242525;
-  font-size: 0.95rem;
-}
-
-/* Formulario */
 form {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: #000000;
-  font-size: 0.9rem;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 12px 15px;
-  border: 1px solid #ddd;
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #fafafa;
+  border: 1.5px solid #eaeaea;
   border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
+  padding: 0 12px;
+  margin-bottom: 0;
 }
-
-.form-group input:focus {
+.input-group input {
+  border: none;
+  background: transparent;
   outline: none;
-  border-color: #dfdfdf;
-  box-shadow: 0 0 0 3px rgba(214, 214, 214, 0.2);
+  font-size: 1rem;
+  padding: 13px 8px 13px 36px;
+  width: 100%;
+  color: #222;
+  font-family: inherit;
+}
+.input-group input::placeholder {
+  color: #bdbdbd;
+  font-size: 0.98rem;
+}
+.input-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  cursor: default;
+}
+.input-action {
+  left: unset;
+  right: 10px;
+  cursor: pointer;
 }
 
-.form-options {
+.forgot-row {
+  width: 100%;
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 25px;
+  margin-bottom: 0;
 }
-
-.forgot-password {
-  color: #020202;
-  font-size: 0.85rem;
+.forgot-link {
+  color: #222;
+  font-size: 0.93rem;
   text-decoration: none;
+  transition: color 0.2s;
 }
-
-.forgot-password:hover {
+.forgot-link:hover {
+  color: #e6007a;
   text-decoration: underline;
 }
 
-/* Botón de login */
-.login-button {
+.login-btn {
   width: 100%;
-  padding: 14px;
-  background-color: #4361ee;
-  color: rgb(8, 8, 8);
+  padding: 13px 0;
+  background: #e6007a;
+  color: #fff;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
+  font-size: 1.08rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s;
+  margin-top: 8px;
+  transition: background 0.2s;
+  box-shadow: 0 2px 8px 0 rgba(230,0,122,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-
-.login-button:hover {
-  background-color: #3a56d4;
-}
-
-.login-button:disabled {
-  background-color: #000000;
+.login-btn:disabled {
+  background: #f3b2d1;
   cursor: not-allowed;
 }
-
-.login-button.loading {
-  background-color: #3a56d4;
+.login-btn:hover:not(:disabled) {
+  background: #c20065;
 }
 
 .spinner {
-  width: 20px;
-  height: 20px;
-  margin: 0 auto;
-  border: 3px solid rgba(255, 255, 255, 0.3);
+  width: 22px;
+  height: 22px;
+  border: 3px solid #fff;
+  border-top: 3px solid #e6007a;
   border-radius: 50%;
-  border-top-color: rgb(10, 10, 10);
-  animation: spin 1s ease-in-out infinite;
+  animation: spin 1s linear infinite;
 }
-
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* Mensaje de error */
 .error-message {
-  color: #e74c3c;
-  font-size: 0.9rem;
-  margin-top: 15px;
+  color: #e6007a;
+  font-size: 0.97rem;
+  margin-top: 10px;
   text-align: center;
+  font-weight: 500;
 }
 
-
-/* Responsive */
-@media (max-width: 768px) {
-  .login-container {
-    flex-direction: column;
+@media (max-width: 900px) {
+  .login-main-container {
+    width: 98vw;
     height: auto;
-    width: 100%;
-    max-width: 500px;
+    min-height: 480px;
   }
-
-  .login-image {
+  .login-illustration {
     display: none;
   }
-
-  .login-form {
-    padding: 40px 30px;
-  }
-  .form-group{
-    width: 90%;
+  .login-card {
+    max-width: 100vw;
+    min-width: 0;
+    width: 100vw;
+    border-radius: 0 0 16px 16px;
+    padding: 38px 18px 28px 18px;
   }
 }
 </style>

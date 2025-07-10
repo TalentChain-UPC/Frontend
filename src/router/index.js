@@ -37,6 +37,30 @@ const routes = [
     meta: { requiresAuth: true, allowedRoles: ['EMPLOYEE'] }
   },
   {
+    path: '/catalogo',
+    name: 'catalogo',
+    component: () => import('@/assets/domains/auth/views/dashboard/CatalogBlock.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/contratos/nuevo',
+    name: 'nuevo-contrato',
+    component: () => import('@/assets/domains/auth/views/dashboard/ContractForm.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/evidencias/nueva',
+    name: 'nueva-evidencia',
+    component: () => import('@/assets/domains/auth/views/dashboard/EvidenceForm.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/mis-contratos',
+    name: 'mis-contratos',
+    component: () => import('@/assets/domains/auth/views/dashboard/EmployeeContracts.vue'),
+    meta: { requiresAuth: true, allowedRoles: ['EMPLOYEE'] }
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/'
   },
@@ -50,19 +74,17 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
 
-  // Evitar inicialización infinita
   if (!authStore.isInitialized) {
     await authStore.initialize()
   }
 
-  // Caso especial para la ruta raíz
-  if (to.path === '/' && from.path !== '/login') {
-    return next('/login')
-  }
-
   // Usuario no autenticado intentando acceder a ruta protegida
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    return next('/login')
+    if (to.path !== '/login') {
+      return next('/login')
+    }
+    // Si ya está en /login, permite continuar
+    return next()
   }
 
   // Usuario autenticado intentando acceder a ruta de invitado
@@ -75,7 +97,7 @@ router.beforeEach(async (to, from, next) => {
     return next(authStore.getDashboardRoute())
   }
 
-  next()
+  return next()
 })
 
 export default router
