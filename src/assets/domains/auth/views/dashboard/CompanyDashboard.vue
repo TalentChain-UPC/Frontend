@@ -1,72 +1,94 @@
 <template>
-  <AppNavbar />
-  <div class="company-dashboard">
-    <h2>Panel de Empresa</h2>
-    <div class="company-actions">
-      <router-link :to="{ name: 'nuevo-contrato' }" class="action-btn">Crear nuevo contrato</router-link>
-    </div>
-    <div class="company-features">
-      <div class="feature-card">
-        <h3>Contratos creados</h3>
-        <ul>
-          <li v-for="contrato in contratos" :key="contrato.id">
-            {{ contrato.nombre }} ({{ contrato.tipo }})
-          </li>
-        </ul>
+  <div>
+    <AppNavbar />
+    <div class="company-dashboard">
+      <h2>Panel de Empresa</h2>
+
+      <div class="company-actions">
+        <router-link :to="{ name: 'nuevo-contrato' }" class="action-btn">
+          Crear nuevo contrato
+        </router-link>
       </div>
-      <div class="feature-card">
-        <h3>Empleados</h3>
-        <ul>
-          <li v-for="empleado in empleados" :key="empleado.id">
-            {{ empleado.nombre }}
-          </li>
-        </ul>
-      </div>
-      <div class="feature-card">
-        <h3>Acciones rápidas</h3>
-        <router-link :to="{ name: 'nuevo-contrato' }" class="quick-link">+ Contrato</router-link>
-        <router-link :to="{ name: 'catalogo' }" class="quick-link">Ver Catálogo</router-link>
+
+      <div class="company-features">
+        <div class="feature-card">
+          <h3>Evidencias</h3>
+          <div v-if="isLoadingEvidencias">Cargando evidencias...</div>
+          <ul v-else>
+            <li v-if="evidencias.length === 0">No hay evidencias registradas.</li>
+            <li v-for="evidencia in evidencias" :key="evidencia.id">
+              {{ evidencia.titulo }} - {{ evidencia.fecha }}
+            </li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <h3>Empleados</h3>
+          <div v-if="isLoadingEmpleados">Cargando empleados...</div>
+          <ul v-else>
+            <li v-if="empleados.length === 0">No hay empleados registrados.</li>
+            <li v-for="empleado in empleados" :key="empleado.id">
+              {{ empleado.nombre }}
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import AppNavbar from '@/shared/components/AppNavbar.vue'
 import api from '@/assets/domains/auth/services/api'
-import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 
-const contratos = ref([])
+const evidencias = ref([])
 const empleados = ref([])
+
+const isLoadingEvidencias = ref(false)
+const isLoadingEmpleados = ref(false)
+
 const authStore = useAuthStore()
 
 onMounted(async () => {
-  try {
-    // Obtener contratos creados por la empresa
-    const res = await api.get('/contracts/company', {
-      headers: { Authorization: `Bearer ${authStore.token}` }
-    })
-    contratos.value = res.data
-  } catch {
-    contratos.value = []
+  const token = authStore.token
+  console.log('authStore.user:', authStore.user)
+  const companyId = authStore.user?.company_id || authStore.user?.id
+
+  if (!companyId) {
+    console.warn('No se encontró company_id. No se pueden cargar evidencias ni empleados.')
+    return
   }
+
+  // ✅ Obtener evidencias correctamente
+  isLoadingEvidencias.value = true
   try {
-    // Obtener empleados de la empresa usando el company_id del perfil y mostrar en consola
-    const companyId = authStore.user?.company_id
-    console.log('companyId usado para empleados:', companyId)
-    if (companyId) {
-      const res = await api.get(`/employees/${companyId}`, {
-        headers: { Authorization: `Bearer ${authStore.token}` }
-      })
-      console.log('Empleados recibidos:', res.data)
-      empleados.value = res.data
-    } else {
-      empleados.value = []
-    }
+    const res = await api.get(
+      `/evidences/company/${companyId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    evidencias.value = res.data || []
   } catch (e) {
-    console.error('Error obteniendo empleados:', e)
+    console.error('Error cargando evidencias:', e)
+    evidencias.value = []
+  } finally {
+    isLoadingEvidencias.value = false
+  }
+
+  // ✅ Obtener empleados
+  isLoadingEmpleados.value = true
+  try {
+    const res = await api.get(
+      `/employees/company/${companyId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    empleados.value = res.data || []
+  } catch (e) {
+    console.error('Error cargando empleados:', e)
     empleados.value = []
+  } finally {
+    isLoadingEmpleados.value = false
   }
 })
 </script>

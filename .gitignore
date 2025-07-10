@@ -5,7 +5,6 @@ node_modules/
 dist/
 build/
 
-# Otros típicos
 .env
 .DS_Store
 *.log

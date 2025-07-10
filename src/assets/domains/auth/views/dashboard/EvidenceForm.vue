@@ -11,9 +11,9 @@
         <option value="CERTIFICATE">Certificado</option>
         <option value="PROMOTION">Ascenso</option>
         <option value="PUNCTUALITY">Puntualidad</option>
-        <option value="SPECIALIZATION">Especializacion</option>
+        <option value="SPECIALIZATION">Especialización</option>
         <option value="STUDY_WORKSHOP">Taller de Estudio</option>
-        <option value="JOB_TRAINING">Capacitacion</option>
+        <option value="JOB_TRAINING">Capacitación</option>
         <option value="PROACTIVITY">Proactividad</option>
       </select>
     </div>
@@ -29,18 +29,23 @@
     </div>
 
     <div>
+      <label>ID de la empresa</label>
+      <input v-model="companyId" type="number" required />
+    </div>
+
+    <div>
       <label>Horas realizadas</label>
       <input v-model="dataNumber" type="number" required />
     </div>
 
     <div>
       <label>URL</label>
-      <input v-model="url" required/>
+      <input v-model="url" required />
     </div>
 
     <div>
       <label>Nombre del Certificado</label>
-      <input v-model="name" required/>
+      <input v-model="name" required />
     </div>
 
     <div>
@@ -50,7 +55,7 @@
 
     <div>
       <label>Fecha de emisión</label>
-      <input v-model="issuedDate" type="date" required/>
+      <input v-model="issuedDate" type="date" required />
     </div>
 
     <button type="submit">Enviar Evidencia</button>
@@ -66,38 +71,45 @@ import { useAuthStore } from '@/stores/authStore'
 const type = ref('CERTIFICATE')
 const description = ref('')
 const employeeId = ref('')
+const companyId = ref('')
 const dataNumber = ref('')
 const url = ref('')
 const name = ref('')
 const institutionName = ref('')
 const issuedDate = ref('')
 const mensaje = ref('')
+
 const authStore = useAuthStore()
+
 const goBack = () => {
   window.history.back()
 }
 
 const handleSubmit = async () => {
   try {
-    // Crear un objeto con la clave 'valor' y el número ingresado
     const dataObject = { valor: Number(dataNumber.value) }
 
-    await createEvidence({
-      type: type.value,
-      description: description.value,
-      employeeId: employeeId.value ? Number(employeeId.value) : null,
-      data: JSON.stringify(dataObject),
-      url: url.value || '',
-      name: name.value || '',
-      institutionName: institutionName.value || '',
-      issuedDate: issuedDate.value || ''
-    }, authStore.token)
+    await createEvidence(
+      {
+        type: type.value,
+        description: description.value,
+        employeeId: employeeId.value ? Number(employeeId.value) : null,
+        companyId: companyId.value ? Number(companyId.value) : null,
+        data: JSON.stringify(dataObject),
+        url: url.value || '',
+        name: name.value || '',
+        institutionName: institutionName.value || '',
+        issuedDate: issuedDate.value || ''
+      },
+      authStore.token
+    )
 
     mensaje.value = 'Evidencia enviada correctamente.'
 
     // Limpiar campos
     description.value = ''
     employeeId.value = ''
+    companyId.value = ''
     dataNumber.value = ''
     url.value = ''
     name.value = ''
@@ -108,6 +120,7 @@ const handleSubmit = async () => {
   }
 }
 </script>
+
 
 <style scoped>
 .close-btn {

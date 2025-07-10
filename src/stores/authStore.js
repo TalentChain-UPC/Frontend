@@ -1,4 +1,3 @@
-// src/stores/authStore.js
 import { defineStore } from 'pinia'
 import { AuthService } from '@/assets/domains/auth/services/authService'
 
@@ -30,28 +29,46 @@ export const useAuthStore = defineStore('auth', {
         const { success, token, user, error } = await AuthService.login(email, password)
         if (!success) throw new Error(error)
 
-        user.role = Array.isArray(user.role) ? user.role[0] : user.role
+        // Normalizar rol
+        const role = Array.isArray(user.role) ? user.role[0] : user.role
 
         this.token = token
         localStorage.setItem('authToken', token)
 
-        // Solo busca perfil de empleado si el usuario es EMPLOYEE
-        if (user.role === 'EMPLOYEE' && (user.employeeId || user.employee_id)) {
-          const employeeId = user.employeeId || user.employee_id;
-          const profileRes = await AuthService.fetchEmployeeProfile(employeeId, token)
-          console.log('Perfil recibido:', profileRes)
+        let fullUser = { ...user, role }
+
+        if (role === 'EMPLOYEE' && user.employeeId) {
+          // Obtener perfil de empleado si aplica
+          const profileRes = await AuthService.fetchEmployeeProfile(user.employeeId, token)
           if (profileRes.success && profileRes.user) {
-            // Mezcla los datos del perfil con el rol y el email original
-            this.user = { ...profileRes.user, role: user.role, email: user.email }
-            localStorage.setItem('authUser', JSON.stringify(this.user))
-          } else {
-            this.user = user // fallback
-            localStorage.setItem('authUser', JSON.stringify(user))
+            fullUser = {
+              ...fullUser,
+              ...profileRes.user
+            }
           }
-        } else {
-          this.user = user
-          localStorage.setItem('authUser', JSON.stringify(user))
+        } else if (role === 'COMPANY') {
+          // 🚀 Aquí SÍ o SÍ obtenemos perfil de empresa
+          const profileRes = await AuthService.fetchCompanyProfile(token)
+          if (profileRes.success && profileRes.company) {
+            fullUser = {
+              ...fullUser,
+              ...profileRes.company,
+              company_id: profileRes.company?.id ?? user.companyId ?? user.company_id ?? user.id
+            }
+          } else {
+            // Si no vino perfil, igual tratamos de derivar company_id
+            fullUser.company_id = user.companyId ?? user.company_id ?? user.id
+          }
         }
+
+        // Como fallback siempre definimos company_id si no existe
+        if (!fullUser.company_id && role === 'COMPANY') {
+          fullUser.company_id = fullUser.id
+        }
+
+        this.user = fullUser
+
+        localStorage.setItem('authUser', JSON.stringify(this.user))
 
         return true
       } catch (e) {
