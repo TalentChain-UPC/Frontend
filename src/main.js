@@ -10,10 +10,12 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 
-const authStore = useAuthStore()
-await authStore.initialize()
 
-app.mount('#app')
+async function init() {
+  const authStore = useAuthStore()
+  await authStore.initialize()
+  app.mount('#app')
+}
 
 // Inicializa el store de autenticación
 router.isReady().then(() => {
@@ -22,3 +24,5 @@ router.isReady().then(() => {
     console.error('Auth initialization error:', error)
   })
 })
+
+init()
