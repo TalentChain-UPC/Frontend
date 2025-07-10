@@ -1,22 +1,58 @@
 <template>
   <form @submit.prevent="handleSubmit" class="evidence-form">
+    <button class="close-btn" @click="goBack" title="Volver">
+      ×
+    </button>
     <h2>Enviar Evidencia</h2>
+
     <div>
-      <label>ID del contrato</label>
-      <input v-model="contractId" required />
-    </div>
-    <div>
-      <label>Tipo de contrato</label>
-      <select v-model="tipo" required>
-        <option value="CERTIFICATE">CERTIFICATE</option>
-        <option value="BONUS">BONUS</option>
-        <!-- Agrega más tipos si tu backend los soporta -->
+      <label>Tipo de evidencia</label>
+      <select v-model="type" required>
+        <option value="CERTIFICATE">Certificado</option>
+        <option value="PROMOTION">Ascenso</option>
+        <option value="PUNCTUALITY">Puntualidad</option>
+        <option value="SPECIALIZATION">Especializacion</option>
+        <option value="STUDY_WORKSHOP">Taller de Estudio</option>
+        <option value="JOB_TRAINING">Capacitacion</option>
+        <option value="PROACTIVITY">Proactividad</option>
       </select>
     </div>
-    <div v-if="tipo === 'CERTIFICATE'">
-      <label>Número de horas</label>
-      <input v-model.number="numeroDeHoras" type="number" min="0" required />
+
+    <div>
+      <label>Descripción</label>
+      <input v-model="description" required />
     </div>
+
+    <div>
+      <label>ID del empleado</label>
+      <input v-model="employeeId" type="number" required />
+    </div>
+
+    <div>
+      <label>Horas realizadas</label>
+      <input v-model="dataNumber" type="number" required />
+    </div>
+
+    <div>
+      <label>URL</label>
+      <input v-model="url" required/>
+    </div>
+
+    <div>
+      <label>Nombre del Certificado</label>
+      <input v-model="name" required/>
+    </div>
+
+    <div>
+      <label>Institución</label>
+      <input v-model="institutionName" required />
+    </div>
+
+    <div>
+      <label>Fecha de emisión</label>
+      <input v-model="issuedDate" type="date" required/>
+    </div>
+
     <button type="submit">Enviar Evidencia</button>
     <div v-if="mensaje" class="mensaje">{{ mensaje }}</div>
   </form>
@@ -27,31 +63,69 @@ import { ref } from 'vue'
 import { createEvidence } from '@/assets/domains/auth/services/api'
 import { useAuthStore } from '@/stores/authStore'
 
-const contractId = ref('')
-const tipo = ref('CERTIFICATE')
-const numeroDeHoras = ref(0)
+const type = ref('CERTIFICATE')
+const description = ref('')
+const employeeId = ref('')
+const dataNumber = ref('')
+const url = ref('')
+const name = ref('')
+const institutionName = ref('')
+const issuedDate = ref('')
 const mensaje = ref('')
 const authStore = useAuthStore()
+const goBack = () => {
+  window.history.back()
+}
 
 const handleSubmit = async () => {
-  let data = {}
-  if (tipo.value === 'CERTIFICATE') {
-    data = { numeroDeHoras: numeroDeHoras.value }
-  }
-  // Puedes agregar más tipos aquí
   try {
+    // Crear un objeto con la clave 'valor' y el número ingresado
+    const dataObject = { valor: Number(dataNumber.value) }
+
     await createEvidence({
-      contractId: contractId.value,
-      tipo: tipo.value,
-      data: JSON.stringify(data)
+      type: type.value,
+      description: description.value,
+      employeeId: employeeId.value ? Number(employeeId.value) : null,
+      data: JSON.stringify(dataObject),
+      url: url.value || '',
+      name: name.value || '',
+      institutionName: institutionName.value || '',
+      issuedDate: issuedDate.value || ''
     }, authStore.token)
+
     mensaje.value = 'Evidencia enviada correctamente.'
-    numeroDeHoras.value = 0
+
+    // Limpiar campos
+    description.value = ''
+    employeeId.value = ''
+    dataNumber.value = ''
+    url.value = ''
+    name.value = ''
+    institutionName.value = ''
+    issuedDate.value = ''
   } catch {
     mensaje.value = 'Error al enviar evidencia.'
   }
 }
 </script>
+
+<style scoped>
+.close-btn {
+  position: absolute;
+  top: 35px;
+  right: 500px;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  z-index: 2;
+  line-height: 1;
+  padding: 0 8px;
+  transition: color 0.2s;
+}
+.close-btn:hover {
+  color: #b71c50;
+}
+</style>
 
 <style scoped>
 .evidence-form {

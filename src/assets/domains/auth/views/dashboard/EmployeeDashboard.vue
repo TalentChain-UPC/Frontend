@@ -1,10 +1,6 @@
 <template>
   <AppNavbar />
 
-  <div class="dashboard-header">
-    <button class="contracts-btn" @click="goToContracts">Ver mis contratos</button>
-  </div>
-
   <div class="grid">
     <!-- Perfil del usuario -->
     <div class="item item-0 profile-card">
@@ -27,7 +23,9 @@
     <div class="item item-1 medals-card">
       <h3>Medallas</h3>
       <div class="medals-grid">
-        <div class="medal" v-for="(medal, index) in medals" :key="index"></div>
+        <div class="medal" v-for="(medal, index) in medals" :key="index">
+          {{ medal.icon }}
+        </div>
       </div>
     </div>
 
@@ -93,7 +91,12 @@
     <!-- Progresos -->
     <div class="item item-5 featured-employees">
       <div class="personal-achievements-card">
-        <h3 class="personal-achievements-header">Mis Progresos</h3>
+        <h3 class="personal-achievements-header">
+          Mis Progresos
+        <div class="dashboard-header">
+          <button class="contracts-btn" @click="goToContracts">Enviar Envidencia</button>
+        </div>
+        </h3>
         <div class="personal-achievements-container">
           <div
             v-for="goal in personalGoals"
@@ -171,7 +174,14 @@ export default {
     const authStore = useAuthStore();
     const router = useRouter();
 
-    const medals = ref([{}, {}, {}, {}, {}, {}]);
+    const medals = ref([
+      { icon: '🥇' },
+      { icon: '🥈' },
+      { icon: '🥉' },
+      { icon: '🏅' },
+      { icon: '🎖️' },
+      { icon: '🏆' }
+    ])
 
     const personalAchievements = ref([
       { text: 'Capacitación finalizada', progress: 90, reward: 300 },
@@ -279,7 +289,7 @@ export default {
     const mobileEmployees = computed(() => trajectoryData.slice(0, 3));
 
     const goToContracts = () => {
-      router.push({ name: 'mis-contratos' });
+      router.push({ name: 'nueva-evidencia' });
     };
 
     return {
@@ -426,19 +436,19 @@ export default {
 }
 
 .contracts-btn {
-  margin-top: 12px;
-  background: #e91e63;
-  color: #fff;
+  background-color: #e91e63;
+  color: white;
   border: none;
-  border-radius: 8px;
-  padding: 10px 18px;
-  font-weight: 600;
+  padding: 8px 7px;
+  border-radius: 6px;
+  font-size: 0.85rem;
   cursor: pointer;
-  transition: background 0.2s;
+  font-weight: 500;
+  transition: background-color 0.3s, transform 0.2s;
 }
 
 .contracts-btn:hover {
-  background: #d015b9;
+  background: #e71259;
 }
 
 /* Medals Card */
@@ -456,11 +466,15 @@ export default {
 
 .medal {
   width: 100%;
-  height: 0;
-  padding-bottom: 100%;
-  background: linear-gradient(135deg, #f0a500, #f39c12);
-  border-radius: 7px;
-  margin: 0 auto;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  background: white;
+  border-radius: 10px;
+  border: 2px solid #f0a500;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 /* Achievements Card */

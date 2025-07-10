@@ -52,12 +52,20 @@ onMounted(async () => {
     contratos.value = []
   }
   try {
-    // Obtener empleados de la empresa (ajusta endpoint según tu backend)
-    const res = await api.get('/employees/company', {
-      headers: { Authorization: `Bearer ${authStore.token}` }
-    })
-    empleados.value = res.data
-  } catch {
+    // Obtener empleados de la empresa usando el company_id del perfil y mostrar en consola
+    const companyId = authStore.user?.company_id
+    console.log('companyId usado para empleados:', companyId)
+    if (companyId) {
+      const res = await api.get(`/employees/${companyId}`, {
+        headers: { Authorization: `Bearer ${authStore.token}` }
+      })
+      console.log('Empleados recibidos:', res.data)
+      empleados.value = res.data
+    } else {
+      empleados.value = []
+    }
+  } catch (e) {
+    console.error('Error obteniendo empleados:', e)
     empleados.value = []
   }
 })
@@ -65,7 +73,7 @@ onMounted(async () => {
 
 <style scoped>
 .company-dashboard {
-  background-color: #f0fdf4;
+  background-color: #fcfcfc;
   min-height: 100vh;
   padding: 32px 0;
 }
