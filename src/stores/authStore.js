@@ -30,28 +30,28 @@ export const useAuthStore = defineStore('auth', {
         const { success, token, user, error } = await AuthService.login(email, password)
         if (!success) throw new Error(error)
 
-        user.role = Array.isArray(user.role) ? user.role[0] : user.role
+        const role = Array.isArray(user.role) ? user.role[0] : user.role
 
         this.token = token
         localStorage.setItem('authToken', token)
 
-        // Solo busca perfil de empleado si el usuario es EMPLOYEE
-        if (user.role === 'EMPLOYEE' && (user.employeeId || user.employee_id)) {
-          const employeeId = user.employeeId || user.employee_id;
-          const profileRes = await AuthService.fetchEmployeeProfile(employeeId, token)
-          console.log('Perfil recibido:', profileRes)
+        let fullUser = { ...user, role }
+
+        // Si el usuario es EMPLOYEE y quieres traer más datos del perfil
+        if (role === 'EMPLOYEE' && user.employeeId) {
+          const profileRes = await AuthService.fetchEmployeeProfile(user.employeeId, token)
           if (profileRes.success && profileRes.user) {
-            // Mezcla los datos del perfil con el rol y el email original
-            this.user = { ...profileRes.user, role: user.role, email: user.email }
-            localStorage.setItem('authUser', JSON.stringify(this.user))
-          } else {
-            this.user = user // fallback
-            localStorage.setItem('authUser', JSON.stringify(user))
+            fullUser = {
+              ...fullUser,
+              ...profileRes.user,
+              // Asegúrate de mantener el company_id que ya trae el login
+              company_id: user.company_id ?? profileRes.user.companyId ?? null
+            }
           }
-        } else {
-          this.user = user
-          localStorage.setItem('authUser', JSON.stringify(user))
         }
+
+        this.user = fullUser
+        localStorage.setItem('authUser', JSON.stringify(this.user))
 
         return true
       } catch (e) {
