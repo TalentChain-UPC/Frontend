@@ -1,3 +1,4 @@
+// src/stores/authStore.js
 import { defineStore } from 'pinia'
 import { AuthService } from '@/assets/domains/auth/services/authService'
 
@@ -29,7 +30,6 @@ export const useAuthStore = defineStore('auth', {
         const { success, token, user, error } = await AuthService.login(email, password)
         if (!success) throw new Error(error)
 
-        // Normalizar rol
         const role = Array.isArray(user.role) ? user.role[0] : user.role
 
         this.token = token
@@ -37,37 +37,20 @@ export const useAuthStore = defineStore('auth', {
 
         let fullUser = { ...user, role }
 
+        // Si el usuario es EMPLOYEE y quieres traer más datos del perfil
         if (role === 'EMPLOYEE' && user.employeeId) {
-          // Obtener perfil de empleado si aplica
           const profileRes = await AuthService.fetchEmployeeProfile(user.employeeId, token)
           if (profileRes.success && profileRes.user) {
             fullUser = {
               ...fullUser,
-              ...profileRes.user
+              ...profileRes.user,
+              // Asegúrate de mantener el company_id que ya trae el login
+              company_id: user.company_id ?? profileRes.user.companyId ?? null
             }
           }
-        } else if (role === 'COMPANY') {
-          // 🚀 Aquí SÍ o SÍ obtenemos perfil de empresa
-          const profileRes = await AuthService.fetchCompanyProfile(token)
-          if (profileRes.success && profileRes.company) {
-            fullUser = {
-              ...fullUser,
-              ...profileRes.company,
-              company_id: profileRes.company?.id ?? user.companyId ?? user.company_id ?? user.id
-            }
-          } else {
-            // Si no vino perfil, igual tratamos de derivar company_id
-            fullUser.company_id = user.companyId ?? user.company_id ?? user.id
-          }
-        }
-
-        // Como fallback siempre definimos company_id si no existe
-        if (!fullUser.company_id && role === 'COMPANY') {
-          fullUser.company_id = fullUser.id
         }
 
         this.user = fullUser
-
         localStorage.setItem('authUser', JSON.stringify(this.user))
 
         return true

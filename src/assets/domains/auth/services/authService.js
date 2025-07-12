@@ -26,33 +26,17 @@ export class AuthService {
 
       const role = roles?.[0] ?? null
 
-      let companyId = null
+      let finalCompanyId = null
 
-      // 2. Si es EMPLOYEE, obtener perfil empleado
+      // 🟡 Solo si el usuario tiene un employeeId, traemos su perfil y obtenemos companyId
       if (employeeId) {
         try {
           const employeeRes = await axios.get(`${API_URL}/employees/${employeeId}`, {
             headers: { Authorization: `Bearer ${token}` }
           })
-          companyId = employeeRes.data.company_id ?? null
+          finalCompanyId = employeeRes.data.companyId ?? null
         } catch (fetchError) {
           console.error('Error obteniendo perfil del empleado:', fetchError)
-        }
-      }
-
-      // 3. Si es COMPANY, obtener perfil empresa
-      if (role === 'COMPANY') {
-        try {
-          const companyRes = await axios.get(`${API_URL}/companies/${id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          })
-          if (companyRes?.data?.id) {
-            companyId = companyRes.data.id
-          } else {
-            console.warn('⚠️ No se encontró ID en el perfil de empresa')
-          }
-        } catch (fetchError) {
-          console.error('Error obteniendo perfil de la empresa:', fetchError)
         }
       }
 
@@ -67,7 +51,7 @@ export class AuthService {
           email: username,
           role,
           employeeId,
-          company_id: companyId
+          company_id: finalCompanyId
         }
       }
     } catch (e) {
@@ -79,6 +63,7 @@ export class AuthService {
     }
   }
 
+  // Los demás métodos los dejas tal cual:
   static async createUser(userData, token) {
     try {
       const response = await axios.post(`${API_URL}/users/create`, userData, {
@@ -95,15 +80,10 @@ export class AuthService {
     }
   }
 
-  /**
-   * Obtener perfil de un empleado por su ID
-   */
   static async fetchEmployeeProfile(employee_id, token) {
     try {
       const response = await axios.get(`${API_URL}/employees/${employee_id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
       })
       return { success: true, user: response.data }
     } catch (e) {
@@ -114,15 +94,10 @@ export class AuthService {
     }
   }
 
-  /**
-   * Obtener datos de la empresa por su ID
-   */
   static async fetchCompanyProfile(company_id, token) {
     try {
       const response = await axios.get(`${API_URL}/companies/${company_id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
       })
       return { success: true, company: response.data }
     } catch (e) {

@@ -120,23 +120,7 @@
 
     <!-- Transacciones recientes -->
     <div class="item item-4">
-      <h3 class="title">Transacciones Recientes</h3>
-      <div class="header-row">
-        <span>Nombre</span>
-        <span>Código de Transacción</span>
-        <span>Monto</span>
-      </div>
-      <div class="transaction-list">
-        <div
-          class="transaction-item"
-          v-for="(tx, index) in recentTransactions"
-          :key="index"
-        >
-          <div class="tx-name"><p class="name">{{ tx.name }}</p></div>
-          <div class="tx-code"><p class="code">{{ tx.transactionCode }}</p></div>
-          <div class="tx-amount"><p class="amount">{{ tx.points }} pts</p></div>
-        </div>
-      </div>
+      <TransactionFeed />
     </div>
   </div>
 
@@ -163,12 +147,14 @@ import AppNavbar from '@/shared/components/AppNavbar.vue';
 import { computed, ref, reactive } from 'vue';
 import EditProfileModal from '@/assets/components/EditProfileModal.vue';
 import AchievementsModal from '@/assets/components/AchievementsModal.vue';
+import TransactionFeed from '@/assets/domains/auth/views/dashboard/TransactionFeed.vue';
 
 export default {
   components: {
     AppNavbar,
     EditProfileModal,
-    AchievementsModal
+    AchievementsModal,
+    TransactionFeed
   },
   setup() {
     const authStore = useAuthStore();
