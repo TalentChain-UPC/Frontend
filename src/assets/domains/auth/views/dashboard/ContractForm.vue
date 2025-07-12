@@ -91,7 +91,7 @@ const handleSubmit = async () => {
       evidenceType: evidenceType.value,
       requirements: JSON.stringify(requirementsObj),
       startDateTime: startDateTime.value.replace('T', ' '),
-      endDateTime: endDateTime.value.replace('T', ' '),
+      endDateTime: endDateTime.value.replace('T', ' ')
     }
     console.log('Payload a enviar:', payload)
     await createContract(payload, authStore.token)
