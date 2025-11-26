@@ -1,0 +1,16 @@
+# Configuración de redirecciones y proxy para Netlify
+
+# 1. Proxy para la API (Evita problemas de CORS y 404 en producción)
+[[redirects]]
+  from = "/api/*"
+  to = "http://34.39.178.54/api/:splat"
+  status = 200
+  force = true
+
+# 2. Redirección para SPA (Vue Router)
+# Esto asegura que al recargar la página en una ruta interna (ej: /dashboard), 
+# Netlify sirva index.html en lugar de dar 404.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
