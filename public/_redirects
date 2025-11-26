@@ -1,1 +1,5 @@
-/*    /index.html   200
+# Proxy para API
+/api/*  http://34.39.178.54/api/:splat  200!
+
+# SPA Fallback
+/*  /index.html  200
