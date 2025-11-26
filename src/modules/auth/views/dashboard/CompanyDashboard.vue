@@ -80,7 +80,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import AppNavbar from '@/shared/components/AppNavbar.vue'
-import api from '@/assets/domains/auth/services/api'
+import api from '@/modules/auth/services/api'
 import { useAuthStore } from '@/stores/authStore'
 
 const evidencias = ref([])

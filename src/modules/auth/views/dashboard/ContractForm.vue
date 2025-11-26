@@ -56,7 +56,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { createContract } from '@/assets/domains/auth/services/api'
+import { createContract } from '@/modules/auth/services/api'
 import { useAuthStore } from '@/stores/authStore'
 
 const name = ref('')

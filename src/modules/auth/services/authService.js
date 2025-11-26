@@ -1,16 +1,13 @@
-// src/assets/domains/auth/services/authService.js
+// src/modules/auth/services/authService.js
 import axios from 'axios'
 
-const API_URL = 'http://localhost:8080/api/v1'
+const API_URL = '/api/v1'
 
 export class AuthService {
-  /**
-   * Login de usuario
-   * Retorna token y datos completos incluyendo company_id.
-   */
+
   static async login(email, password) {
     try {
-      // 1. Login inicial
+
       const response = await axios.post(`${API_URL}/auth/sign-in`, { email, password })
 
       const {
@@ -28,7 +25,6 @@ export class AuthService {
 
       let finalCompanyId = null
 
-      // 🟡 Solo si el usuario tiene un employeeId, traemos su perfil y obtenemos companyId
       if (employeeId) {
         try {
           const employeeRes = await axios.get(`${API_URL}/employees/${employeeId}`, {

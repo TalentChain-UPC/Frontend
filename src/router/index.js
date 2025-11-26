@@ -9,55 +9,55 @@ const routes = [
   {
     path: '/login',
     name: 'login',
-    component: () => import('@/assets/domains/auth/views/LoginView.vue'),
+    component: () => import('@/modules/auth/views/LoginView.vue'),
     meta: { requiresGuest: true }
   },
   {
     path: '/forgot-password',
     name: 'forgot-password',
-    component: () => import('@/assets/domains/auth/views/ForgotPasswordView.vue'),
+    component: () => import('@/modules/auth/views/ForgotPasswordView.vue'),
     meta: { requiresGuest: true }
   },
   {
     path: '/admin-dashboard',
     name: 'admin-dashboard',
-    component: () => import('@/assets/domains/auth/views/dashboard/AdminDashboard.vue'),
+    component: () => import('@/modules/auth/views/dashboard/AdminDashboard.vue'),
     meta: { requiresAuth: true, allowedRoles: ['ADMIN'] }
   },
   {
     path: '/company-dashboard',
     name: 'company-dashboard',
-    component: () => import('@/assets/domains/auth/views/dashboard/CompanyDashboard.vue'),
+    component: () => import('@/modules/auth/views/dashboard/CompanyDashboard.vue'),
     meta: { requiresAuth: true, allowedRoles: ['COMPANY'] }
   },
   {
     path: '/employee-dashboard',
     name: 'employee-dashboard',
-    component: () => import('@/assets/domains/auth/views/dashboard/EmployeeDashboard.vue'),
+    component: () => import('@/modules/auth/views/dashboard/EmployeeDashboard.vue'),
     meta: { requiresAuth: true, allowedRoles: ['EMPLOYEE'] }
   },
   {
     path: '/catalogo',
     name: 'catalogo',
-    component: () => import('@/assets/domains/auth/views/dashboard/CatalogBlock.vue'),
+    component: () => import('@/modules/auth/views/dashboard/CatalogBlock.vue'),
     meta: { requiresAuth: true }
   },
   {
     path: '/contratos/nuevo',
     name: 'nuevo-contrato',
-    component: () => import('@/assets/domains/auth/views/dashboard/ContractForm.vue'),
+    component: () => import('@/modules/auth/views/dashboard/ContractForm.vue'),
     meta: { requiresAuth: true }
   },
   {
     path: '/evidencias/nueva',
     name: 'nueva-evidencia',
-    component: () => import('@/assets/domains/auth/views/dashboard/EvidenceForm.vue'),
+    component: () => import('@/modules/auth/views/dashboard/EvidenceForm.vue'),
     meta: { requiresAuth: true }
   },
   {
     path: '/mis-contratos',
     name: 'mis-contratos',
-    component: () => import('@/assets/domains/auth/views/dashboard/EmployeeContracts.vue'),
+    component: () => import('@/modules/auth/views/dashboard/EmployeeContracts.vue'),
     meta: { requiresAuth: true, allowedRoles: ['EMPLOYEE'] }
   },
   {

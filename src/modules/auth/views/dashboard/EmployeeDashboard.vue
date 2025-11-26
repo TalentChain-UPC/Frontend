@@ -145,9 +145,9 @@ import { useAuthStore } from '@/stores/authStore';
 import { useRouter } from 'vue-router';
 import AppNavbar from '@/shared/components/AppNavbar.vue';
 import { computed, ref, reactive } from 'vue';
-import EditProfileModal from '@/assets/components/EditProfileModal.vue';
-import AchievementsModal from '@/assets/components/AchievementsModal.vue';
-import TransactionFeed from '@/assets/domains/auth/views/dashboard/TransactionFeed.vue';
+import EditProfileModal from '@/components/EditProfileModal.vue';
+import AchievementsModal from '@/components/AchievementsModal.vue';
+import TransactionFeed from '@/modules/auth/views/dashboard/TransactionFeed.vue';
 
 export default {
   components: {

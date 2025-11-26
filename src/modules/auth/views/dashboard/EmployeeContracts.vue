@@ -17,7 +17,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '@/assets/domains/auth/services/api'
+import api from '@/modules/auth/services/api'
 import { useAuthStore } from '@/stores/authStore'
 
 const contratos = ref([])

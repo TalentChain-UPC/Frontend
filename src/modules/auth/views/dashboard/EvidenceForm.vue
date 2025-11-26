@@ -65,7 +65,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { createEvidence } from '@/assets/domains/auth/services/api'
+import { createEvidence } from '@/modules/auth/services/api'
 import { useAuthStore } from '@/stores/authStore'
 
 const type = ref('CERTIFICATE')
