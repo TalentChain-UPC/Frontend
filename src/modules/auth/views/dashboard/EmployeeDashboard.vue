@@ -1,7 +1,7 @@
 <template>
   <AppNavbar />
 
-  <div class="grid">
+  <div class="grid" v-if="currentPhase === 3">
     <!-- Perfil del usuario -->
     <div class="item item-0 profile-card">
       <div class="profile-top">
@@ -95,6 +95,7 @@
           Mis Progresos
         <div class="dashboard-header">
           <button class="contracts-btn" @click="goToContracts">Enviar Envidencia</button>
+          <button class="forum-btn" @click="goToForum">💡 Foro de Ideas</button>
         </div>
         </h3>
         <div class="personal-achievements-container">
@@ -138,6 +139,10 @@
     :achievements="personalAchievements"
     @close="closeAchievementsModal"
   />
+  <!-- Fases Tuckman -->
+  <TuckmanForming v-if="currentPhase === 1" @next="nextPhase" />
+  <TuckmanStorming v-if="currentPhase === 2" @next="nextPhase" />
+  <TuckmanAdjourning v-if="currentPhase === 4" @back="backToDashboard" />
 </template>
 
 <script>
@@ -148,17 +153,41 @@ import { computed, ref, reactive } from 'vue';
 import EditProfileModal from '@/components/EditProfileModal.vue';
 import AchievementsModal from '@/components/AchievementsModal.vue';
 import TransactionFeed from '@/modules/auth/views/dashboard/TransactionFeed.vue';
+import TuckmanForming from '@/modules/auth/views/dashboard/tuckman/TuckmanForming.vue';
+import TuckmanStorming from '@/modules/auth/views/dashboard/tuckman/TuckmanStorming.vue';
+import TuckmanAdjourning from '@/modules/auth/views/dashboard/tuckman/TuckmanAdjourning.vue';
 
 export default {
   components: {
     AppNavbar,
     EditProfileModal,
     AchievementsModal,
-    TransactionFeed
+    TransactionFeed,
+    TuckmanForming,
+    TuckmanStorming,
+    TuckmanAdjourning
   },
   setup() {
     const authStore = useAuthStore();
     const router = useRouter();
+    
+    // Estado de fases Tuckman (persistente)
+    const currentPhase = ref(parseInt(localStorage.getItem('tuckmanPhase')) || 1);
+
+    const nextPhase = () => {
+      if (currentPhase.value < 3) {
+        currentPhase.value++;
+        localStorage.setItem('tuckmanPhase', currentPhase.value);
+      }
+    };
+
+    const goToForum = () => {
+      currentPhase.value = 4;
+    };
+
+    const backToDashboard = () => {
+      currentPhase.value = 3;
+    };
 
     const medals = ref([
       { icon: '🥇' },
@@ -300,7 +329,11 @@ export default {
       closeAchievementsModal,
       saveChanges,
       handleSave,
-      goToContracts
+      goToContracts,
+      currentPhase,
+      nextPhase,
+      goToForum,
+      backToDashboard
     };
   }
 };
@@ -435,6 +468,24 @@ export default {
 
 .contracts-btn:hover {
   background: #e71259;
+}
+
+/* Forum Button */
+.forum-btn {
+  background-color: #0d9488;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-weight: 500;
+  margin-left: 10px;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.forum-btn:hover {
+  background: #0f766e;
 }
 
 /* Medals Card */
