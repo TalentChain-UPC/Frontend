@@ -42,8 +42,7 @@ onMounted(() => {
     return
   }
 
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const socket = new WebSocket(`${protocol}//${window.location.host}/ws`)
+  const socket = new WebSocket('ws://34.39.178.54/ws')
   stompClient = Stomp.over(socket)
 
   stompClient.connect({}, () => {
