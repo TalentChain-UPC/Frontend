@@ -1,5 +1,5 @@
 <template>
-  <div class="evidence-form-container">
+  <div class="evidence-form-container" :class="{ 'modal-mode': isModal }">
     <form @submit.prevent="handleSubmit" class="evidence-form">
       <button type="button" class="close-btn" @click="goBack" title="Volver">
         ×
@@ -70,15 +70,32 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, defineProps, defineEmits, watch } from 'vue'
 import { createEvidence } from '@/modules/auth/services/api'
 import { useAuthStore } from '@/stores/authStore'
 import { useRouter } from 'vue-router'
 
+const props = defineProps({
+  contractId: {
+    type: [Number, String],
+    default: null
+  },
+  initialType: {
+    type: String,
+    default: 'CERTIFICATE'
+  },
+  isModal: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const emit = defineEmits(['close', 'success'])
+
 const authStore = useAuthStore()
 const router = useRouter()
 
-const type = ref('CERTIFICATE')
+const type = ref(props.initialType)
 const description = ref('')
 const dataNumber = ref('')
 const url = ref('')
@@ -88,8 +105,17 @@ const issuedDate = ref('')
 const mensaje = ref('')
 const isError = ref(false)
 
+// Watch for prop changes to update local state if modal is reused
+watch(() => props.initialType, (newVal) => {
+  type.value = newVal
+})
+
 const goBack = () => {
-  router.back()
+  if (props.isModal) {
+    emit('close')
+  } else {
+    router.back()
+  }
 }
 
 const handleSubmit = async () => {
@@ -120,6 +146,7 @@ const handleSubmit = async () => {
         description: description.value,
         employeeId: Number(employeeId),
         companyId: Number(companyId),
+        contractId: props.contractId ? Number(props.contractId) : null, // Include contractId if present
         data: JSON.stringify(dataObject),
         url: url.value || '',
         name: name.value || '',
@@ -139,8 +166,14 @@ const handleSubmit = async () => {
     name.value = ''
     institutionName.value = ''
     issuedDate.value = ''
-    // Reset type to default if desired, or keep last selection
     type.value = 'CERTIFICATE' 
+
+    if (props.isModal) {
+      setTimeout(() => {
+        emit('success')
+        mensaje.value = ''
+      }, 1500)
+    }
 
   } catch (err) {
     console.error('Error sending evidence:', err)
@@ -165,6 +198,14 @@ const handleSubmit = async () => {
   padding: 40px 20px;
   background-color: #f8f9fa;
   font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+/* When used inside a modal, remove container padding/bg */
+.evidence-form-container.modal-mode {
+  min-height: auto;
+  padding: 0;
+  background-color: transparent;
+  width: 100%;
 }
 
 .evidence-form {

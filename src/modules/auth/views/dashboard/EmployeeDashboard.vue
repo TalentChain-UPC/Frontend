@@ -57,7 +57,7 @@
     <!-- Logros personales -->
     <div class="item item-2 personal-achievements-card">
       <div class="personal-achievements-header">
-        <h3>Obi por completar</h3>
+        <h3>Objetivos por completar</h3>
         <button class="achivementsmodal" @click="openAchievementsModal">
           Ver todos los logros
         </button>
@@ -80,7 +80,7 @@
             <small style="color: #666;">{{ contract.evidenceType }}</small>
           </div>
           <div class="goal-rewards">
-            <button class="upload-evidence-btn" @click="goToEvidence(contract)">
+            <button class="upload-evidence-btn" @click="openEvidenceModal(contract)">
               Subir Evidencia
             </button>
           </div>
@@ -173,6 +173,19 @@
   <TuckmanForming v-if="currentPhase === 1" @next="nextPhase" />
   <TuckmanStorming v-if="currentPhase === 2" @next="nextPhase" />
   <TuckmanAdjourning v-if="currentPhase === 4" @back="backToDashboard" />
+
+  <!-- Evidence Modal Overlay -->
+  <div v-if="showEvidenceModal" class="modal-overlay">
+    <div class="modal-content">
+      <EvidenceForm 
+        :contractId="selectedContract?.id"
+        :initialType="selectedContract?.evidenceType || 'CERTIFICATE'"
+        :isModal="true"
+        @close="closeEvidenceModal"
+        @success="handleEvidenceSuccess"
+      />
+    </div>
+  </div>
 </template>
 
 <script>
@@ -187,6 +200,7 @@ import TransactionFeed from '@/modules/auth/views/dashboard/TransactionFeed.vue'
 import TuckmanForming from '@/modules/auth/views/dashboard/tuckman/TuckmanForming.vue';
 import TuckmanStorming from '@/modules/auth/views/dashboard/tuckman/TuckmanStorming.vue';
 import TuckmanAdjourning from '@/modules/auth/views/dashboard/tuckman/TuckmanAdjourning.vue';
+import EvidenceForm from '@/modules/auth/views/dashboard/EvidenceForm.vue';
 
 export default {
   components: {
@@ -196,7 +210,8 @@ export default {
     TransactionFeed,
     TuckmanForming,
     TuckmanStorming,
-    TuckmanAdjourning
+    TuckmanAdjourning,
+    EvidenceForm
   },
   setup() {
     const authStore = useAuthStore();
@@ -241,7 +256,8 @@ export default {
           const companyId = authStore.user?.company_id;
           if (companyId) {
             const res = await getEmployeeContracts(companyId, authStore.token);
-            contracts.value = res.data;
+            // Filter: Show only contracts that are NOT validated
+            contracts.value = res.data.filter(c => c.status !== 'VALIDATED'); 
           } else {
             console.warn('No company_id found for user');
           }
@@ -264,11 +280,34 @@ export default {
       }
     });
 
-    const goToEvidence = (contract) => {
-      router.push({
-        name: 'nueva-evidencia',
-        query: { contractId: contract.id, type: contract.evidenceType }
-      });
+    const showEvidenceModal = ref(false);
+    const selectedContract = ref(null);
+
+    const openEvidenceModal = (contract) => {
+      selectedContract.value = contract;
+      showEvidenceModal.value = true;
+    };
+
+    const closeEvidenceModal = () => {
+      showEvidenceModal.value = false;
+      selectedContract.value = null;
+    };
+
+    const handleEvidenceSuccess = async () => {
+      closeEvidenceModal();
+      // Refresh contracts to update the list (remove the one with submitted evidence if backend updates status)
+      if (authStore.user?.company_id) {
+        isLoadingContracts.value = true;
+        try {
+           const res = await getEmployeeContracts(authStore.user.company_id, authStore.token);
+           // Filter: Show only contracts that are NOT validated
+           contracts.value = res.data.filter(c => c.status !== 'VALIDATED'); 
+        } catch (error) {
+          console.error("Error refreshing contracts:", error);
+        } finally {
+          isLoadingContracts.value = false;
+        }
+      }
     };
 
     const recentTransactions = ref([
@@ -395,9 +434,11 @@ export default {
       backToDashboard,
       contracts,
       isLoadingContracts,
-      contracts,
-      isLoadingContracts,
-      goToEvidence,
+      openEvidenceModal,
+      showEvidenceModal,
+      selectedContract,
+      closeEvidenceModal,
+      handleEvidenceSuccess,
       walletBalance
     };
   }
@@ -1216,6 +1257,39 @@ export default {
   justify-content: flex-end;
   align-items: center;
   margin: 18px 18px 0 0;
+}
+
+/* Modal Overlay Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 600px;
+  padding: 20px;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .upload-evidence-btn {
