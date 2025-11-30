@@ -221,7 +221,7 @@ export default {
           'INFORMATION_TECHNOLOGY'
         ]
         
-        const role = adminAreas.includes(form.employee.area) ? 'ADMINISTRATIVE' : 'EMPLOYEE'
+        const role = adminAreas.includes(form.employee.area) ? 'COMPANY' : 'EMPLOYEE'
 
         payload = {
           name: form.name,

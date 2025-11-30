@@ -432,6 +432,8 @@ const handleContractSuccess = () => {
 }
 .modal-body {
   padding: 24px;
+  overflow-y: auto;
+  max-height: 70vh;
 }
 .detail-section {
   margin-bottom: 24px;

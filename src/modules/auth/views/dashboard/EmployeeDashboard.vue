@@ -1008,42 +1008,7 @@ export default {
 }
 
 
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-.modal-content {
-  background: white;
-  padding: 24px;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 500px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
+/* Modal styles moved to end of file */
 
 .modal-content h2 {
   margin: 0 0 20px 0;
@@ -1263,23 +1228,31 @@ export default {
   align-items: center;
   z-index: 1000;
   backdrop-filter: blur(4px);
+  padding: 20px; /* Ensure padding on small screens */
+  box-sizing: border-box;
 }
 
 .modal-content {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
   width: 100%;
   max-width: 600px;
-  padding: 20px;
-  animation: slideUp 0.3s ease-out;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  animation: slideDown 0.3s ease;
+  max-height: 90vh; /* Prevent full height */
+  overflow-y: auto; /* Enable scrolling */
+  position: relative;
 }
 
-@keyframes slideUp {
+@keyframes slideDown {
   from {
+    transform: translateY(-20px);
     opacity: 0;
-    transform: translateY(20px);
   }
   to {
-    opacity: 1;
     transform: translateY(0);
+    opacity: 1;
   }
 }
 

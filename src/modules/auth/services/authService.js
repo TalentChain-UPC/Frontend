@@ -21,7 +21,7 @@ export class AuthService {
         employeeId
       } = response.data
 
-      const role = roles?.[0] ?? null
+      const role = roles?.includes('COMPANY') ? 'COMPANY' : (roles?.[0] ?? null)
 
       let finalCompanyId = null
 
