@@ -33,6 +33,10 @@ export default {
   setup() {
     const router = useRouter()
     const authStore = useAuthStore()
+    
+    // Initialize auth store to restore session
+    authStore.initialize()
+
     const notification = ref({
       show: false,
       message: '',

@@ -4,19 +4,44 @@
   <div class="grid" v-if="currentPhase === 3">
     <!-- Perfil del usuario -->
     <div class="item item-0 profile-card">
-      <div class="profile-top">
-        <img src="https://randomuser.me/api/portraits/men/44.jpg" class="profile-pic" />
-        <div class="profile-info">
-          <h2>{{ user.name }} {{ user.lastName }}</h2>
-          <p>{{ user.email }}</p>
-          <p>{{ user.occupation }}</p>
-          <div class="progress-bar">
-            <div class="progress-fill" style="width: 60%;"></div>
+      <div class="profile-content">
+        <div class="profile-header">
+          <div class="avatar-container">
+            <img src="https://randomuser.me/api/portraits/men/44.jpg" class="profile-pic" />
+            <div class="status-indicator"></div>
           </div>
-          <span class="progress-text">40% para subir de nivel</span>
+          <div class="profile-details">
+            <h2>{{ user.name }} {{ user.lastName }}</h2>
+            <p class="role">{{ user.occupation }}</p>
+            <p class="email">{{ user.email }}</p>
+          </div>
+          <button class="edit-btn-icon" @click="openEditProfileModal" title="Editar perfil">
+            ✏️
+          </button>
+        </div>
+        
+        <div class="stats-row">
+          <div class="stat-item">
+            <span class="stat-value">{{ walletBalance }}</span>
+            <span class="stat-label">Monedas</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-value">Nivel 5</span>
+            <span class="stat-label">Senior</span>
+          </div>
+        </div>
+
+        <div class="level-progress">
+          <div class="progress-info">
+            <span>Progreso de nivel</span>
+            <span>40%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 40%;"></div>
+          </div>
         </div>
       </div>
-      <button class="edit-btn" @click="openEditProfileModal">Editar perfil</button>
     </div>
 
     <!-- Medallas -->
@@ -39,20 +64,25 @@
       </div>
 
       <div class="personal-achievements-container scrollable-container">
+        <div v-if="isLoadingContracts">Cargando contratos...</div>
+        <div v-else-if="contracts.length === 0">No tienes contratos activos.</div>
         <div
+          v-else
           class="goal-tracker"
-          v-for="(goal, index) in personalAchievements"
-          :key="index"
+          v-for="(contract, index) in contracts"
+          :key="contract.id"
         >
           <div class="goal-progress-circle">
-            <span class="goal-progress-count">{{ goal.progress }}%</span>
+            <span class="goal-progress-count">0%</span>
           </div>
           <div class="goal-description">
-            <p class="goal-text">{{ goal.text }}</p>
+            <p class="goal-text">{{ contract.name }}</p>
+            <small style="color: #666;">{{ contract.evidenceType }}</small>
           </div>
           <div class="goal-rewards">
-            <div class="reward-badge"></div>
-            <span class="reward-amount">{{ goal.reward }} pts</span>
+            <button class="upload-evidence-btn" @click="goToEvidence(contract)">
+              Subir Evidencia
+            </button>
           </div>
         </div>
       </div>
@@ -94,7 +124,7 @@
         <h3 class="personal-achievements-header">
           Mis Progresos
         <div class="dashboard-header">
-          <button class="contracts-btn" @click="goToContracts">Enviar Envidencia</button>
+          <!-- Botón de evidencia eliminado -->
           <button class="forum-btn" @click="goToForum">💡 Foro de Ideas</button>
         </div>
         </h3>
@@ -136,7 +166,7 @@
   <AchievementsModal
     v-if="showAchievementsModal"
     :visible="showAchievementsModal"
-    :achievements="personalAchievements"
+    :achievements="contracts"
     @close="closeAchievementsModal"
   />
   <!-- Fases Tuckman -->
@@ -148,8 +178,11 @@
 <script>
 import { useAuthStore } from '@/stores/authStore';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/authStore';
+import { useRouter } from 'vue-router';
+import { getEmployeeContracts, getEmployeeById } from '@/modules/auth/services/api';
 import AppNavbar from '@/shared/components/AppNavbar.vue';
-import { computed, ref, reactive } from 'vue';
+import { computed, ref, reactive, onMounted } from 'vue';
 import EditProfileModal from '@/components/EditProfileModal.vue';
 import AchievementsModal from '@/components/AchievementsModal.vue';
 import TransactionFeed from '@/modules/auth/views/dashboard/TransactionFeed.vue';
@@ -198,18 +231,42 @@ export default {
       { icon: '🏆' }
     ])
 
-    const personalAchievements = ref([
-      { text: 'Capacitación finalizada', progress: 90, reward: 300 },
-      { text: 'Trabajo en equipo', progress: 100, reward: 500 },
-      { text: 'Asistencia perfecta este mes', progress: 75, reward: 200 },
-      { text: 'Entrega puntual de proyectos', progress: 60, reward: 250 },
-      { text: 'Participación en reuniones', progress: 80, reward: 180 },
-      { text: 'Feedback positivo de clientes', progress: 50, reward: 350 },
-      { text: 'Cumplimiento de objetivos trimestrales', progress: 40, reward: 400 },
-      { text: 'Innovación en procesos', progress: 30, reward: 450 },
-      { text: 'Mentoría a compañeros', progress: 55, reward: 220 },
-      { text: 'Uso eficiente de recursos', progress: 70, reward: 150 }
-    ]);
+    const contracts = ref([]);
+    const isLoadingContracts = ref(false);
+    const walletBalance = ref(0);
+
+    onMounted(async () => {
+      if (authStore.token) {
+        // Fetch Contracts
+        isLoadingContracts.value = true;
+        try {
+          const res = await getEmployeeContracts(authStore.token);
+          contracts.value = res.data;
+        } catch (error) {
+          console.error("Error fetching contracts:", error);
+        } finally {
+          isLoadingContracts.value = false;
+        }
+
+        // Fetch Profile for Wallet/Points
+        if (authStore.user?.employeeId) {
+          try {
+            const profileRes = await getEmployeeById(authStore.user.employeeId, authStore.token);
+            // Assuming the field is 'points' or 'wallet', defaulting to 0 if not found
+            walletBalance.value = profileRes.data.points || profileRes.data.wallet || 0;
+          } catch (error) {
+            console.error("Error fetching profile:", error);
+          }
+        }
+      }
+    });
+
+    const goToEvidence = (contract) => {
+      router.push({
+        name: 'nueva-evidencia',
+        query: { contractId: contract.id, type: contract.evidenceType }
+      });
+    };
 
     const recentTransactions = ref([
       { name: 'Ana Torres', transactionCode: '0x1A3F9...', points: 150 },
@@ -317,7 +374,6 @@ export default {
       mobileEmployees,
       sortedPeople,
       medals,
-      personalAchievements,
       recentTransactions,
       editUser,
       // Modal flags y métodos
@@ -333,7 +389,13 @@ export default {
       currentPhase,
       nextPhase,
       goToForum,
-      backToDashboard
+      backToDashboard,
+      contracts,
+      isLoadingContracts,
+      contracts,
+      isLoadingContracts,
+      goToEvidence,
+      walletBalance
     };
   }
 };
@@ -371,87 +433,153 @@ export default {
   grid-auto-rows: auto;
 }
 
-/* Profile Card */
-.profile-top {
+/* Profile Card Redesign */
+.profile-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 16px;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.profile-content {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.profile-header {
   display: flex;
   align-items: center;
   gap: 16px;
-  width: 100%;
+  position: relative;
 }
 
-.profile-card {
-  display: flex;
-  flex-direction: column; /* Mantenemos columna para que el botón quede debajo */
-  align-items: center;
-  background-color: #f9d9f3;
-  color: #1a1f24;
+.avatar-container {
   position: relative;
-  padding: 20px;
 }
 
 .profile-pic {
-  width: 100px;
-  height: 100px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   object-fit: cover;
-  flex-shrink: 0;
+  border: 3px solid #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-.profile-info {
-  text-align: left; /* alinear texto a la izquierda */
-  width: 100%;
+.status-indicator {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  width: 14px;
+  height: 14px;
+  background-color: #2ecc71;
+  border: 2px solid #fff;
+  border-radius: 50%;
 }
 
-.profile-info h2 {
-  margin: 0 0 8px 0;
-  font-size: 1.2rem;
+.profile-details {
+  flex: 1;
 }
 
-.profile-info p {
-  margin: 4px 0;
+.profile-details h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.profile-details .role {
+  margin: 4px 0 2px;
   font-size: 0.9rem;
-  color: #555;
+  color: #e91e63;
+  font-weight: 600;
+}
+
+.profile-details .email {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #7f8c8d;
+}
+
+.edit-btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  padding: 4px;
+}
+
+.edit-btn-icon:hover {
+  opacity: 1;
+}
+
+.stats-row {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background-color: rgba(233, 30, 99, 0.05);
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-value {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #e91e63;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 24px;
+  background-color: rgba(0,0,0,0.1);
+}
+
+.level-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #666;
+  font-weight: 500;
 }
 
 .progress-bar {
   background-color: #e0e0e0;
-  height: 8px;
-  border-radius: 4px;
-  margin: 12px 0;
+  height: 6px;
+  border-radius: 3px;
   overflow: hidden;
 }
 
 .progress-fill {
-  background-color: #e91e63;
+  background: linear-gradient(90deg, #e91e63, #ff6090);
   height: 100%;
-  border-radius: 4px;
-  transition: width 0.3s ease;
-}
-
-.progress-text {
-  display: block;
-  font-size: 0.8rem;
-  color: #e91e63;
-  margin-top: 4px;
-}
-
-.edit-btn {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  margin-top: 0;
-  padding: 8px 16px;
-  background: transparent;
-  border: 1px solid #e91e63;
-  color: #e91e63;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.edit-btn:hover {
-  background-color: rgba(233, 30, 99, 0.1);
+  border-radius: 3px;
+  transition: width 0.5s ease;
 }
 
 .contracts-btn {
@@ -1085,5 +1213,22 @@ export default {
   justify-content: flex-end;
   align-items: center;
   margin: 18px 18px 0 0;
+}
+
+.upload-evidence-btn {
+  background-color: #e91e63;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.upload-evidence-btn:hover {
+  background-color: #d81b60;
 }
 </style>

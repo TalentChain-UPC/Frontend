@@ -69,11 +69,21 @@
           </div>
           <div class="form-group">
             <label>DNI</label>
-            <input v-model="form.employee.dni" type="text" required />
+            <input 
+              v-model="form.employee.dni" 
+              type="text" 
+              required 
+              @input="form.employee.dni = form.employee.dni.replace(/[^0-9]/g, '')"
+              maxlength="8"
+            />
           </div>
           <div class="form-group">
             <label>Género</label>
-            <input v-model="form.employee.gender" type="text" required />
+            <select v-model="form.employee.gender" required>
+              <option disabled value="">Seleccione género</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Femenino">Femenino</option>
+            </select>
           </div>
           <div class="form-group">
             <label>Ubicación</label>
@@ -81,7 +91,13 @@
           </div>
           <div class="form-group">
             <label>Teléfono</label>
-            <input v-model="form.employee.phoneNumber" type="text" required />
+            <input 
+              v-model="form.employee.phoneNumber" 
+              type="text" 
+              required 
+              @input="form.employee.phoneNumber = form.employee.phoneNumber.replace(/[^0-9]/g, '')"
+              maxlength="9"
+            />
           </div>
           <div class="form-group">
             <label>Email Corporativo</label>
@@ -92,23 +108,36 @@
             <input v-model="form.employee.personalEmail" type="email" required />
           </div>
           <div class="form-group">
-            <label>Ocupación</label>
-            <input v-model="form.employee.occupation" type="text" required />
-          </div>
-          <div class="form-group">
             <label>Área</label>
             <select v-model="form.employee.area" required>
               <option disabled value="">Seleccione un área</option>
-              <option value="INFORMATION_TECHNOLOGY">Tecnología</option>
+              <option value="GENERAL_MANAGEMENT">Gerencia General</option>
+              <option value="ADMINISTRATION">Administración</option>
               <option value="HUMAN_RESOURCES">Recursos Humanos</option>
+              <option value="INFORMATION_TECHNOLOGY">Tecnología de la Información</option>
               <option value="FINANCE">Finanzas</option>
+              <option value="LOGISTICS">Logística</option>
               <option value="SALES">Ventas</option>
+              <option value="MARKETING">Marketing</option>
+              <option value="OPERATIONS">Operaciones</option>
+              <option value="QUALITY_ASSURANCE">Aseguramiento de Calidad</option>
+              <option value="LEGAL">Legal</option>
+              <option value="AUDIT">Auditoría</option>
+              <option value="MAINTENANCE">Mantenimiento</option>
+              <option value="OCCUPATIONAL_HEALTH_AND_SAFETY">Seguridad y Salud Ocupacional</option>
+              <option value="CUSTOMER_SERVICE">Servicio al Cliente</option>
+              <option value="PLANNING">Planeamiento</option>
+              <option value="INNOVATION">Innovación</option>
             </select>
+          </div>
+          <div class="form-group">
+            <label>Ocupación</label>
+            <input v-model="form.employee.occupation" type="text" required />
           </div>
         </template>
 
         <button type="submit">
-          Crear {{ activeForm === 'admin' ? 'Administrador' : 'Empresa' }}
+          {{ activeForm === 'admin' ? 'Crear Administrador' : 'Registrar' }}
         </button>
       </form>
 
@@ -158,6 +187,7 @@ export default {
     })
 
     watch(activeForm, () => {
+      // Resetear todo el formulario al cambiar de tab
       for (let key in form) {
         if (typeof form[key] === 'object' && form[key] !== null) {
           for (let subKey in form[key]) {
@@ -184,11 +214,23 @@ export default {
           role: 'ADMIN'
         }
       } else if (activeForm.value === 'company') {
+        const adminAreas = [
+          'GENERAL_MANAGEMENT',
+          'ADMINISTRATION',
+          'HUMAN_RESOURCES',
+          'INFORMATION_TECHNOLOGY'
+        ]
+        
+        const role = adminAreas.includes(form.employee.area) ? 'ADMINISTRATIVE' : 'EMPLOYEE'
+
         payload = {
           name: form.name,
           ruc: form.ruc,
           sector: form.sector,
-          employee: { ...form.employee }
+          employee: { 
+            ...form.employee,
+            role
+          }
         }
       }
 
@@ -206,6 +248,20 @@ export default {
 
         const result = await res.json()
         message.value = result.message || 'Creado correctamente'
+
+        // Limpiar formulario parcialmente si es empresa
+        if (activeForm.value === 'company') {
+          // Limpiar solo datos del empleado
+          for (let key in form.employee) {
+            form.employee[key] = ''
+          }
+          // Mantener datos de empresa (name, ruc, sector)
+        } else {
+          // Limpiar todo si es admin
+          form.email = ''
+          form.password = ''
+        }
+
       } catch (err) {
         console.error(err)
         message.value = 'Error al crear cuenta'

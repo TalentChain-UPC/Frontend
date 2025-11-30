@@ -19,4 +19,25 @@ export const createEvidence = (payload, token) =>
     headers: { Authorization: `Bearer ${token}` }
   })
 
+export const getEvidenceById = (id, token) =>
+  api.get(`/evidences/${id}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+// Companies
+export const getCompanyById = (id, token) =>
+  api.get(`/companies/${id}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+
+// Employees
+export const getEmployeeById = (id, token) =>
+  api.get(`/employees/${id}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+
+export const getEmployeeContracts = (token) =>
+  api.get('/contracts/employee', {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+
 export default api

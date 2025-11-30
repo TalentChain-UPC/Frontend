@@ -20,8 +20,7 @@
             <li v-for="evidencia in evidencias" :key="evidencia.id">
               <div class="evidence-card">
                 <p><strong>Tipo:</strong> {{ evidencia.type }}</p>
-                <p><strong>Datos:</strong></p>
-                <pre>{{ parseData(evidencia.data) }}</pre>
+                <p><strong>Datos...</strong></p>
                 <div class="evidence-actions">
                   <button
                     @click="validarEvidencia(evidencia.id)"
@@ -63,19 +62,59 @@
       <!-- Modal de detalles -->
       <div v-if="selectedEvidencia" class="modal-overlay" @click.self="selectedEvidencia = null">
         <div class="modal-content">
-          <h3>Detalles de la evidencia</h3>
-          <p><strong>Tipo:</strong> {{ selectedEvidencia.type }}</p>
-          <p><strong>Datos:</strong></p>
-          <pre>{{ parseData(selectedEvidencia.data) }}</pre>
-          <p><strong>Fecha:</strong> {{ selectedEvidencia.updated_at }}</p>
-          <p><strong>Empleado ID:</strong> {{ selectedEvidencia.employeeId }}</p>
-          <button @click="selectedEvidencia = null">Cerrar</button>
+          <div class="modal-header">
+            <h3>Detalles de la Evidencia</h3>
+            <button class="close-icon" @click="selectedEvidencia = null">×</button>
+          </div>
+          
+          <div class="modal-body">
+            <div class="detail-section">
+              <h4>Información de la Evidencia</h4>
+              <div class="detail-row">
+                <span class="label">Tipo:</span>
+                <span class="value">{{ selectedEvidencia.type }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Fecha de creación:</span>
+                <span class="value">{{ new Date(selectedEvidencia.created_at || selectedEvidencia.updated_at).toLocaleString() }}</span>
+              </div>
+              
+              <!-- Parsed Data Fields -->
+              <div v-if="parseData(selectedEvidencia.data).description" class="detail-row">
+                <span class="label">Descripción:</span>
+                <span class="value">{{ parseData(selectedEvidencia.data).description }}</span>
+              </div>
+            </div>
+
+            <div class="detail-section">
+              <h4>Información del Empleado</h4>
+              <div v-if="isLoadingDetails" class="loading-text">Cargando datos...</div>
+              <div v-else-if="selectedEmployee" class="employee-details">
+                <div class="detail-row">
+                  <span class="label">Nombre:</span>
+                  <span class="value highlight">
+                    {{ selectedEmployee.name }} {{ selectedEmployee.lastName }}
+                  </span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Email:</span>
+                  <span class="value">{{ selectedEmployee.workEmail }}</span>
+                </div>
+              </div>
+              <div v-else class="no-data">
+                No se pudo cargar la información del empleado.
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn-close" @click="selectedEvidencia = null">Cerrar</button>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </template>
-
 
 <script setup>
 import { ref, onMounted } from 'vue'
@@ -86,6 +125,8 @@ import { useAuthStore } from '@/stores/authStore'
 const evidencias = ref([])
 const empleados = ref([])
 const selectedEvidencia = ref(null)
+const selectedEmployee = ref(null)
+const isLoadingDetails = ref(false)
 
 const isLoadingEvidencias = ref(false)
 const isLoadingEmpleados = ref(false)
@@ -95,12 +136,9 @@ const authStore = useAuthStore()
 function parseData(rawData) {
   try {
     const parsed = JSON.parse(rawData)
-    if (parsed.valor !== undefined) {
-      return `${parsed.valor} horas`
-    }
-    return rawData
+    return parsed
   } catch {
-    return rawData
+    return {}
   }
 }
 
@@ -140,6 +178,19 @@ async function validarEvidencia(id) {
 
 function verDetalles(evidencia) {
   selectedEvidencia.value = evidencia
+  selectedEmployee.value = null
+  
+  if (evidencia.employeeId) {
+    isLoadingDetails.value = true
+    api.get(`/employees/${evidencia.employeeId}`, {
+      headers: { Authorization: `Bearer ${authStore.token}` }
+    })
+    .then(res => {
+      selectedEmployee.value = res.data
+    })
+    .catch(e => console.error('Error cargando detalles del empleado:', e))
+    .finally(() => isLoadingDetails.value = false)
+  }
 }
 
 onMounted(async () => {
@@ -214,7 +265,7 @@ onMounted(async () => {
 }
 .action-btn:hover {
   background: #d015b9;
-}
+  }
 .company-features {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -280,6 +331,8 @@ onMounted(async () => {
 .evidence-actions button:last-child:hover {
   background: #1565c0;
 }
+
+/* Modal Styles */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -290,12 +343,118 @@ onMounted(async () => {
   display:flex;
   align-items:center;
   justify-content:center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
 }
 .modal-content {
-  background:white;
-  padding:1.5rem;
-  border-radius:8px;
-  max-width:600px;
-  width:90%;
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.3s ease-out;
+}
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.modal-header {
+  padding: 16px 24px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-header h3 {
+  margin: 0;
+  color: #166534;
+  font-size: 1.25rem;
+}
+.close-icon {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #6c757d;
+  cursor: pointer;
+  line-height: 1;
+}
+.close-icon:hover {
+  color: #343a40;
+}
+.modal-body {
+  padding: 24px;
+}
+.detail-section {
+  margin-bottom: 24px;
+}
+.detail-section:last-child {
+  margin-bottom: 0;
+}
+.detail-section h4 {
+  margin: 0 0 12px 0;
+  color: #495057;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 6px;
+}
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+.label {
+  color: #6c757d;
+  font-weight: 500;
+}
+.value {
+  color: #212529;
+  font-weight: 600;
+  text-align: right;
+}
+.value.highlight {
+  color: #166534;
+}
+.data-preview {
+  background: #f8f9fa;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: #495057;
+  margin-top: 4px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.loading-text, .no-data {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  padding: 10px;
+}
+.modal-footer {
+  padding: 16px 24px;
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: flex-end;
+}
+.btn-close {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-close:hover {
+  background-color: #5a6268;
 }
 </style>

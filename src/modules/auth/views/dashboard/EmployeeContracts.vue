@@ -17,7 +17,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '@/modules/auth/services/api'
+import { getEmployeeContracts } from '@/modules/auth/services/api'
 import { useAuthStore } from '@/stores/authStore'
 
 const contratos = ref([])
@@ -26,10 +26,7 @@ const authStore = useAuthStore()
 
 onMounted(async () => {
   try {
-    // Suponiendo que el backend tiene un endpoint para obtener contratos del empleado
-    const res = await api.get('/contracts/employee', {
-      headers: { Authorization: `Bearer ${authStore.token}` }
-    })
+    const res = await getEmployeeContracts(authStore.token)
     contratos.value = res.data
   } catch {
     contratos.value = []
