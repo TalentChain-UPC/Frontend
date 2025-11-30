@@ -47,16 +47,6 @@
       </div>
     </div>
 
-    <!-- Medallas -->
-    <div class="item item-1 medals-card">
-      <h3>Medallas</h3>
-      <div class="medals-grid">
-        <div class="medal" v-for="(medal, index) in medals" :key="index">
-          {{ medal.icon }}
-        </div>
-      </div>
-    </div>
-
     <!-- Logros personales -->
     <div class="item item-2 personal-achievements-card">
       <div class="personal-achievements-header">
@@ -244,14 +234,7 @@ export default {
       currentPhase.value = 3;
     };
 
-    const medals = ref([
-      { icon: '🥇' },
-      { icon: '🥈' },
-      { icon: '🥉' },
-      { icon: '🏅' },
-      { icon: '🎖️' },
-      { icon: '🏆' }
-    ])
+
 
     const contracts = ref([]);
     const pendingContracts = computed(() => {
@@ -437,7 +420,7 @@ export default {
       trajectoryData,
       mobileEmployees,
       sortedPeople,
-      medals,
+
       recentTransactions,
       editUser,
       showEditProfileModal,
@@ -1129,7 +1112,7 @@ export default {
   .profile-card {
     flex-direction: row;
     text-align: left;
-    grid-column: 1 / span 3;
+    grid-column: 1 / span 4;
     align-items: center;
   }
 
