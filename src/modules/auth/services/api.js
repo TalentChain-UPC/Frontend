@@ -40,4 +40,9 @@ export const getEmployeeContracts = (companyId, token) =>
     headers: { Authorization: `Bearer ${token}` }
   })
 
+export const getCompanyTransactions = (companyId, token) =>
+  api.get(`/transactions/company/${companyId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+
 export default api

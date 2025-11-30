@@ -28,6 +28,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
+import { getCompanyTransactions } from '@/modules/auth/services/api'
 import Stomp from 'stompjs'
 
 const authStore = useAuthStore()
@@ -41,6 +42,15 @@ onMounted(() => {
     console.warn('No hay company_id disponible.')
     return
   }
+
+  // Fetch initial transactions
+  getCompanyTransactions(companyId, authStore.token)
+    .then(res => {
+      if (res.data) {
+        transactions.value = res.data
+      }
+    })
+    .catch(err => console.error("Error fetching initial transactions:", err))
 
   const socket = new WebSocket('ws://34.39.178.54/ws')
   stompClient = Stomp.over(socket)

@@ -81,10 +81,13 @@
                 <span class="value">{{ new Date(selectedEvidencia.created_at || selectedEvidencia.updated_at).toLocaleString() }}</span>
               </div>
               
-              <!-- Parsed Data Fields -->
-              <div v-if="parseData(selectedEvidencia.data).description" class="detail-row">
+              <div class="detail-row">
+                <span class="label">Fecha de emisión:</span>
+                <span class="value">{{ selectedEvidencia.issuedDate || 'No especificada' }}</span>
+              </div>
+              <div class="detail-row">
                 <span class="label">Descripción:</span>
-                <span class="value">{{ parseData(selectedEvidencia.data).description }}</span>
+                <span class="value">{{ selectedEvidencia.description || 'Sin descripción' }}</span>
               </div>
             </div>
 
@@ -380,6 +383,8 @@ const handleContractSuccess = () => {
 .contract-modal-content {
   max-width: 800px; /* Wider for contract form */
   width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 @keyframes slideUp {
   from { transform: translateY(20px); opacity: 0; }
