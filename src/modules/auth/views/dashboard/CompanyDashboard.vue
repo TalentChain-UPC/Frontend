@@ -54,14 +54,13 @@
                 <div class="empleado-info">
                   <strong>{{ empleado.name }} {{ empleado.lastName }}</strong>
                   <p>{{ empleado.occupation || 'Sin ocupación' }}</p>
+                  <p><strong>Balance:</strong> {{ empleado.balance || 0 }} pts</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- Modal de detalles -->
       <div v-if="selectedEvidencia" class="modal-overlay" @click.self="selectedEvidencia = null">
         <div class="modal-content">
           <div class="modal-header">

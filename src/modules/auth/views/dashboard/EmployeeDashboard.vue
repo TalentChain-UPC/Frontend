@@ -97,21 +97,21 @@
             <div class="position">2°</div>
             <div class="person-info">
               <div class="name">{{ sortedPeople[1].name }}</div>
-              <div class="points">{{ sortedPeople[1].points }} pts</div>
+              <div class="points">{{ sortedPeople[1].balance || 0 }} pts</div>
             </div>
           </div>
           <div class="podium-block gold" v-if="sortedPeople[0]">
             <div class="position">1°</div>
             <div class="person-info">
               <div class="name">{{ sortedPeople[0].name }}</div>
-              <div class="points">{{ sortedPeople[0].points }} pts</div>
+              <div class="points">{{ sortedPeople[0].balance || 0 }} pts</div>
             </div>
           </div>
           <div class="podium-block bronze" v-if="sortedPeople[2]">
             <div class="position">3°</div>
             <div class="person-info">
               <div class="name">{{ sortedPeople[2].name }}</div>
-              <div class="points">{{ sortedPeople[2].points }} pts</div>
+              <div class="points">{{ sortedPeople[2].balance || 0 }} pts</div>
             </div>
           </div>
         </div>

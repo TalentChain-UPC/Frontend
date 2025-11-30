@@ -9,16 +9,20 @@
     <table v-else class="transaction-table">
       <thead>
         <tr>
-          <th>ID</th>
-          <th>Hash</th>
-          <th>Monto (monedas)</th>
+          <th>ID Transacción</th>
+          <th>Descripción</th>
+          <th>Monto</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="trx in transactions" :key="trx.id">
-          <td>#{{ trx.id || "?" }}</td>
-          <td><code>{{ trx.transactionId || "N/A" }}</code></td>
-          <td>{{ trx.amount }}</td>
+          <td>
+            <code :title="trx.transactionId">
+              {{ trx.transactionId ? `${trx.transactionId.substring(0, 10)}...` : 'N/A' }}
+            </code>
+          </td>
+          <td>{{ trx.description }}</td>
+          <td class="amount-cell">{{ trx.amount }} pts</td>
         </tr>
       </tbody>
     </table>
@@ -115,6 +119,13 @@ onUnmounted(() => {
   background: #eee;
   padding: 2px 4px;
   border-radius: 4px;
-  font-size: 0.9em;
+  font-size: 0.85em;
+  color: #666;
+}
+
+.amount-cell {
+  font-weight: bold;
+  color: #16a34a;
+  white-space: nowrap;
 }
 </style>
