@@ -57,7 +57,7 @@
     <!-- Logros personales -->
     <div class="item item-2 personal-achievements-card">
       <div class="personal-achievements-header">
-        <h3>Logros por completar</h3>
+        <h3>Obi por completar</h3>
         <button class="achivementsmodal" @click="openAchievementsModal">
           Ver todos los logros
         </button>
@@ -238,8 +238,13 @@ export default {
         // Fetch Contracts
         isLoadingContracts.value = true;
         try {
-          const res = await getEmployeeContracts(authStore.token);
-          contracts.value = res.data;
+          const companyId = authStore.user?.company_id;
+          if (companyId) {
+            const res = await getEmployeeContracts(companyId, authStore.token);
+            contracts.value = res.data;
+          } else {
+            console.warn('No company_id found for user');
+          }
         } catch (error) {
           console.error("Error fetching contracts:", error);
         } finally {

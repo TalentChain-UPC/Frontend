@@ -26,8 +26,11 @@ const authStore = useAuthStore()
 
 onMounted(async () => {
   try {
-    const res = await getEmployeeContracts(authStore.token)
-    contratos.value = res.data
+    const companyId = authStore.user?.company_id
+    if (companyId) {
+      const res = await getEmployeeContracts(companyId, authStore.token)
+      contratos.value = res.data
+    }
   } catch {
     contratos.value = []
   }

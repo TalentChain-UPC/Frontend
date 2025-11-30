@@ -35,8 +35,8 @@ export const getEmployeeById = (id, token) =>
     headers: { Authorization: `Bearer ${token}` }
   })
 
-export const getEmployeeContracts = (token) =>
-  api.get('/contracts/employee', {
+export const getEmployeeContracts = (companyId, token) =>
+  api.get(`/contracts/company/${companyId}`, {
     headers: { Authorization: `Bearer ${token}` }
   })
 

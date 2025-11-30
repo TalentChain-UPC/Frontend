@@ -10,7 +10,6 @@
       </header>
 
       <div class="form-grid">
-        <!-- Hidden fields for IDs are handled in logic, not shown in UI -->
 
         <div class="form-group full-width">
           <label>Tipo de evidencia</label>
@@ -108,8 +107,6 @@ const handleSubmit = async () => {
     }
 
     if (!companyId) {
-      // Try to fetch profile if companyId is missing (similar fallback to ContractForm logic could be added here if needed, 
-      // but usually authStore.user should have it if logged in correctly)
       mensaje.value = 'Error: No se pudo identificar la empresa asociada. Contacte al administrador.'
       isError.value = true
       return
