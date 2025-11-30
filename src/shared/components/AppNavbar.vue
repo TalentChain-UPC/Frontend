@@ -72,7 +72,7 @@ export default {
   justify-content: space-between;
   flex-wrap: wrap;
   width: 100%;
-  max-width: 1123px;
+  max-width: 1400px;
   padding: 10px 20px;
   font-family: 'Poppins', sans-serif;
   position: relative; /* Necesario para que el menú se posicione respecto a este contenedor */

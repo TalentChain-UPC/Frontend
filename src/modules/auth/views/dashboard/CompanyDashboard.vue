@@ -134,7 +134,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import AppNavbar from '@/shared/components/AppNavbar.vue'
-import api from '@/modules/auth/services/api'
+import api, { getEmployeeBalance } from '@/modules/auth/services/api'
 import { useAuthStore } from '@/stores/authStore'
 import ContractForm from '@/modules/auth/views/dashboard/ContractForm.vue'
 
@@ -224,7 +224,24 @@ onMounted(async () => {
     const res = await api.get(`/employees/company/${companyId}`, {
       headers: { Authorization: `Bearer ${authStore.token}` }
     })
-    empleados.value = res.data || []
+    
+    const employeesData = res.data || []
+    
+    // Fetch balances for each employee
+    const employeesWithBalance = await Promise.all(employeesData.map(async (emp) => {
+      try {
+        const balanceRes = await getEmployeeBalance(emp.id, authStore.token)
+        return {
+          ...emp,
+          balance: balanceRes.data?.balance || 0
+        }
+      } catch (err) {
+        console.error(`Error fetching balance for employee ${emp.id}:`, err)
+        return { ...emp, balance: 0 }
+      }
+    }))
+
+    empleados.value = employeesWithBalance
   } catch (e) {
     console.error('Error cargando empleados:', e)
     empleados.value = []
