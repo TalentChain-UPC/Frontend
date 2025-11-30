@@ -178,8 +178,6 @@
 <script>
 import { useAuthStore } from '@/stores/authStore';
 import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/authStore';
-import { useRouter } from 'vue-router';
 import { getEmployeeContracts, getEmployeeById } from '@/modules/auth/services/api';
 import AppNavbar from '@/shared/components/AppNavbar.vue';
 import { computed, ref, reactive, onMounted } from 'vue';
