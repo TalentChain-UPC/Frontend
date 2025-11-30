@@ -484,6 +484,10 @@ export default {
   gap: 20px;
 }
 
+.profile-content {
+  width: 100%;
+}
+
 .profile-header {
   display: flex;
   align-items: center;
