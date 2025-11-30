@@ -22,7 +22,7 @@
         
         <div class="stats-row">
           <div class="stat-item">
-            <span class="stat-value">{{ walletBalance }}</span>
+            <span class="stat-value">{{ balance }}</span>
             <span class="stat-label">Monedas</span>
           </div>
           <div class="stat-divider"></div>
@@ -197,7 +197,7 @@
 <script>
 import { useAuthStore } from '@/stores/authStore';
 import { useRouter } from 'vue-router';
-import { getEmployeeContracts, getEmployeeById } from '@/modules/auth/services/api';
+import { getEmployeeContracts, getEmployeeById, getEmployeeBalance } from '@/modules/auth/services/api';
 import AppNavbar from '@/shared/components/AppNavbar.vue';
 import { computed, ref, reactive, onMounted } from 'vue';
 import EditProfileModal from '@/components/EditProfileModal.vue';
@@ -259,7 +259,7 @@ export default {
     });
 
     const isLoadingContracts = ref(false);
-    const walletBalance = ref(0);
+    const balance = ref(0);
 
     onMounted(async () => {
       if (authStore.token) {
@@ -269,26 +269,23 @@ export default {
           const companyId = authStore.user?.company_id;
           if (companyId) {
             const res = await getEmployeeContracts(companyId, authStore.token);
-            // Store all contracts, filtering happens in computed properties
             contracts.value = res.data; 
           } else {
             console.warn('No company_id found for user');
           }
+          
+          // Fetch Balance from Virtual Account
+          if (authStore.user?.employeeId) {
+             const balanceRes = await getEmployeeBalance(authStore.user.employeeId, authStore.token);
+             if (balanceRes.data) {
+                balance.value = balanceRes.data.balance || 0;
+             }
+          }
+
         } catch (error) {
-          console.error("Error fetching contracts:", error);
+          console.error("Error fetching data:", error);
         } finally {
           isLoadingContracts.value = false;
-        }
-
-        // Fetch Profile for Wallet/Points
-        if (authStore.user?.employeeId) {
-          try {
-            const profileRes = await getEmployeeById(authStore.user.employeeId, authStore.token);
-            // Assuming the field is 'points' or 'wallet', defaulting to 0 if not found
-            walletBalance.value = profileRes.data.points || profileRes.data.wallet || 0;
-          } catch (error) {
-            console.error("Error fetching profile:", error);
-          }
         }
       }
     });
@@ -308,12 +305,11 @@ export default {
 
     const handleEvidenceSuccess = async () => {
       closeEvidenceModal();
-      // Refresh contracts to update the list (remove the one with submitted evidence if backend updates status)
       if (authStore.user?.company_id) {
         isLoadingContracts.value = true;
         try {
            const res = await getEmployeeContracts(authStore.user.company_id, authStore.token);
-           contracts.value = res.data; // Update all contracts
+           contracts.value = res.data;
         } catch (error) {
           console.error("Error refreshing contracts:", error);
         } finally {
@@ -351,7 +347,6 @@ export default {
       { name: "Demi Wilkinson", role: "Backend Developer", status: "Diplomado", reward: "200 monedas" }
     ];
 
-    // ✅ Estado separado para cada modal
     const showEditProfileModal = ref(false);
     const showAchievementsModal = ref(false);
 
@@ -361,7 +356,6 @@ export default {
       puesto: ''
     });
 
-    // ✅ Abrir modal de editar perfil
     const openEditProfileModal = () => {
       editUser.name = authStore.user.name;
       editUser.email = authStore.user.email;
@@ -374,7 +368,6 @@ export default {
     };
 
     const openAchievementsModal = () => {
-      console.log("Abriendo modal de logros...");
       showAchievementsModal.value = true;
     };
 
@@ -430,7 +423,6 @@ export default {
       medals,
       recentTransactions,
       editUser,
-      // Modal flags y métodos
       showEditProfileModal,
       showAchievementsModal,
       openEditProfileModal,
@@ -453,178 +445,13 @@ export default {
       selectedContract,
       closeEvidenceModal,
       handleEvidenceSuccess,
-      walletBalance
+      balance
     };
   }
 };
 </script>
 
-
 <style scoped>
-/* Estilos base */
-.grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  padding: 10px;
-  width: 100%;
-  box-sizing: border-box;
-  grid-auto-rows: auto;
-}
-
-.item {
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 16px;
-  overflow: hidden;
-}
-
-/* Visibilidad condicional */
-.mobile-only {
-  display: block;
-  grid-auto-rows: auto;
-}
-
-.desktop-only {
-  display: none;
-  grid-auto-rows: auto;
-}
-
-/* Profile Card Redesign */
-.profile-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  border-radius: 16px;
-  padding: 0;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  position: relative;
-}
-
-.profile-content {
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.profile-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  position: relative;
-}
-
-.avatar-container {
-  position: relative;
-}
-
-.profile-pic {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #fff;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.status-indicator {
-  position: absolute;
-  bottom: 5px;
-  right: 5px;
-  width: 14px;
-  height: 14px;
-  background-color: #2ecc71;
-  border: 2px solid #fff;
-  border-radius: 50%;
-}
-
-.profile-details {
-  flex: 1;
-}
-
-.profile-details h2 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #2c3e50;
-}
-
-.profile-details .role {
-  margin: 4px 0 2px;
-  font-size: 0.9rem;
-  color: #e91e63;
-  font-weight: 600;
-}
-
-.profile-details .email {
-  margin: 0;
-  font-size: 0.85rem;
-  color: #7f8c8d;
-}
-
-.edit-btn-icon {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1.2rem;
-  opacity: 0.6;
-  transition: opacity 0.2s;
-  padding: 4px;
-}
-
-.edit-btn-icon:hover {
-  opacity: 1;
-}
-
-.stats-row {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  background-color: rgba(233, 30, 99, 0.05);
-  padding: 12px;
-  border-radius: 12px;
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.stat-value {
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: #e91e63;
-}
-
-.stat-label {
-  font-size: 0.75rem;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 600;
-}
-
-.stat-divider {
-  width: 1px;
-  height: 24px;
-  background-color: rgba(0,0,0,0.1);
-}
-
-.level-progress {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.progress-info {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.8rem;
-  color: #666;
-  font-weight: 500;
-}
 
 .progress-bar {
   background-color: #e0e0e0;

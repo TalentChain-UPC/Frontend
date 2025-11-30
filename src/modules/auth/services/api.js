@@ -35,6 +35,11 @@ export const getEmployeeById = (id, token) =>
     headers: { Authorization: `Bearer ${token}` }
   })
 
+export const getEmployeeBalance = (employeeId, token) =>
+  api.get(`/virtual-accounts/employee/${employeeId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+
 export const getEmployeeContracts = (companyId, token) =>
   api.get(`/contracts/company/${companyId}`, {
     headers: { Authorization: `Bearer ${token}` }
