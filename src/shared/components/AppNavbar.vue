@@ -8,9 +8,7 @@
         &#9776;
       </button>
       <div class="navbar-right" :class="{ open: isMenuOpen }">
-        <button class="catalog" @click="goToCatalog">
-          Catálogo
-        </button>
+
         <button class="logout" @click="handleLogout">
           Cerrar Sesión
         </button>
@@ -40,15 +38,13 @@ export default {
       isMenuOpen.value = !isMenuOpen.value
     }
 
-    const goToCatalog = () => {
-      router.push('/catalogo')
-    }
+
 
     return {
       handleLogout,
       isMenuOpen,
       toggleMenu,
-      goToCatalog
+      toggleMenu
     }
   }
 }
@@ -103,7 +99,6 @@ export default {
   align-items: center;
 }
 
-.catalog,
 .logout {
   font-weight: bold;
   padding: 10px 14px;
@@ -113,13 +108,7 @@ export default {
   transition: background-color 0.3s;
 }
 
-.catalog {
-  background-color: #e61aca;
-  color: white;
-}
-.catalog:hover {
-  background-color: #d015b9;
-}
+
 
 .logout {
   background-color: #f44336;
