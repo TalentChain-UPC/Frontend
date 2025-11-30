@@ -58,24 +58,25 @@ export default {
 .navbar {
   display: flex;
   justify-content: center;
-  padding: 20px 0; /* Espacio arriba y abajo */
-  position: relative; /* Importante para posicionar el menú absoluto */
+  padding: 0; /* Remove padding */
+  position: relative;
+  width: 100%;
 }
 
 /* Contenedor centrado */
 .navbar-container {
   background-color: #303b46;
-  border-radius: 10px;
+  border-radius: 0; /* Remove border radius */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   width: 100%;
-  max-width: 1400px;
-  padding: 10px 20px;
+  max-width: 100%; /* Remove max-width */
+  padding: 15px 32px; /* Adjust padding */
   font-family: 'Poppins', sans-serif;
-  position: relative; /* Necesario para que el menú se posicione respecto a este contenedor */
+  position: relative;
 }
 
 /* Logo */

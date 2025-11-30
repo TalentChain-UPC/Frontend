@@ -1,67 +1,128 @@
 <template>
-  <div>
+  <div class="dashboard-layout">
     <AppNavbar />
-    <div class="company-dashboard">
-      <h2>Panel de Empresa</h2>
+    
+    <div class="dashboard-container">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <h2>Panel Empresa</h2>
+        </div>
+        <nav class="sidebar-nav">
+          <button 
+            :class="['nav-item', { active: activeTab === 'evidences' }]"
+            @click="activeTab = 'evidences'"
+          >
+            Evidencias
+          </button>
+          <button 
+            :class="['nav-item', { active: activeTab === 'employees' }]"
+            @click="activeTab = 'employees'"
+          >
+            Empleados
+          </button>
+        </nav>
+        
+        <div class="sidebar-footer">
+           <button @click="showContractModal = true" class="create-contract-btn">
+            + Nuevo Contrato
+          </button>
+        </div>
+      </aside>
 
-      <div class="company-actions">
-      <div class="company-actions">
-        <button @click="showContractModal = true" class="action-btn">
-          Crear nuevo contrato
-        </button>
-      </div>
-      </div>
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Evidencias View -->
+        <div v-if="activeTab === 'evidences'" class="view-section">
+          <div class="section-header">
+            <h3>Gestión de Evidencias</h3>
+            <div class="header-actions">
+               <button @click="cargarEvidencias" class="refresh-btn" title="Actualizar">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                   <path d="M23 4v6h-6"></path>
+                   <path d="M1 20v-6h6"></path>
+                   <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                 </svg>
+               </button>
+            </div>
+          </div>
 
-      <div class="company-features">
-        <!-- Evidencias -->
-        <div class="feature-card">
-          <h3>Evidencias</h3>
-          <div v-if="isLoadingEvidencias">Cargando evidencias...</div>
-          <ul v-else>
-            <li v-if="evidencias.length === 0">No hay evidencias registradas.</li>
-            <li v-for="evidencia in evidencias" :key="evidencia.id">
-              <div class="evidence-card">
-                <p><strong>Tipo:</strong> {{ evidencia.type }}</p>
-                <p><strong>Datos...</strong></p>
+          <div v-if="isLoadingEvidencias" class="loading-state">Cargando evidencias...</div>
+          <div v-else class="evidences-list">
+            <div v-if="evidencias.length === 0" class="empty-state">No hay evidencias registradas.</div>
+            <div v-else class="evidence-grid">
+              <div v-for="evidencia in evidencias" :key="evidencia.id" class="evidence-card">
+                <div class="evidence-header">
+                  <span class="evidence-type">{{ evidencia.type }}</span>
+                  <span :class="['status-badge', evidencia.validated ? 'validated' : 'pending']">
+                    {{ evidencia.validated ? 'Validada' : 'Pendiente' }}
+                  </span>
+                </div>
+                <div class="evidence-body">
+                  <p class="evidence-desc">{{ evidencia.description || 'Sin descripción' }}</p>
+                  <p class="evidence-date">Fecha de emisión: {{ evidencia.certificateResource?.issuedDate || 'No especificada' }}</p>
+                </div>
                 <div class="evidence-actions">
                   <button
                     @click="validarEvidencia(evidencia.id)"
                     :disabled="evidencia.validated"
+                    class="validate-btn"
                   >
-                    {{ evidencia.validated ? '✅ Validada' : 'Validar' }}
+                    {{ evidencia.validated ? 'Validada' : 'Validar' }}
                   </button>
-                  <button @click="verDetalles(evidencia)">
+                  <button @click="verDetalles(evidencia)" class="details-btn">
                     Ver detalles
                   </button>
-                </div>
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Empleados -->
-        <div class="feature-card">
-          <h3>Empleados</h3>
-          <div v-if="isLoadingEmpleados">Cargando empleados...</div>
-          <div v-else>
-            <div v-if="empleados.length === 0">No hay empleados registrados.</div>
-            <div v-else class="empleados-grid">
-              <div
-                v-for="empleado in empleados"
-                :key="empleado.id"
-                class="empleado-card"
-              >
-                <div class="empleado-info">
-                  <strong>{{ empleado.name }} {{ empleado.lastName }}</strong>
-                  <p>{{ empleado.occupation || 'Sin ocupación' }}</p>
-                  <p><strong>Balance:</strong> {{ empleado.balance || 0 }} pts</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <div v-if="selectedEvidencia" class="modal-overlay" @click.self="selectedEvidencia = null">
+
+        <!-- Empleados View -->
+        <div v-if="activeTab === 'employees'" class="view-section">
+          <div class="section-header">
+            <h3>Directorio de Empleados</h3>
+            <button @click="downloadReport" class="download-btn">
+             Descargar Reporte
+            </button>
+          </div>
+
+          <div v-if="isLoadingEmpleados" class="loading-state">Cargando empleados...</div>
+          <div v-else>
+            <div v-if="empleados.length === 0" class="empty-state">No hay empleados registrados.</div>
+            <div v-else class="empleados-table-container">
+              <table class="empleados-table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Cargo</th>
+                    <th>Balance</th>
+                    <th>Evidencias Enviadas</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="empleado in empleados" :key="empleado.id">
+                    <td>
+                      <div class="employee-name">
+                        <div class="avatar-placeholder">{{ empleado.name.charAt(0) }}</div>
+                        {{ empleado.name }} {{ empleado.lastName }}
+                      </div>
+                    </td>
+                    <td>{{ empleado.occupation || 'Sin ocupación' }}</td>
+                    <td class="balance-cell">{{ empleado.balance || 0 }} pts</td>
+                    <td>{{ getEmployeeEvidenceCount(empleado.id) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Modals (unchanged logic, updated styles if needed) -->
+    <div v-if="selectedEvidencia" class="modal-overlay" @click.self="selectedEvidencia = null">
         <div class="modal-content">
           <div class="modal-header">
             <h3>Detalles de la Evidencia</h3>
@@ -72,21 +133,12 @@
             <div class="detail-section">
               <h4>Información de la Evidencia</h4>
               <div class="detail-row">
-                <span class="label">Tipo:</span>
-                <span class="value">{{ selectedEvidencia.type }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="label">Fecha de creación:</span>
-                <span class="value">{{ new Date(selectedEvidencia.created_at || selectedEvidencia.updated_at).toLocaleString() }}</span>
-              </div>
-              
-              <div class="detail-row">
-                <span class="label">Fecha de emisión:</span>
-                <span class="value">{{ selectedEvidencia.issuedDate || 'No especificada' }}</span>
-              </div>
-              <div class="detail-row">
                 <span class="label">Descripción:</span>
                 <span class="value">{{ selectedEvidencia.description || 'Sin descripción' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Fecha de emisión:</span>
+                <span class="value">{{ selectedEvidencia.certificateResource?.issuedDate || 'No especificada' }}</span>
               </div>
             </div>
 
@@ -127,17 +179,20 @@
           />
         </div>
       </div>
-    </div>
+
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import AppNavbar from '@/shared/components/AppNavbar.vue'
 import api, { getEmployeeBalance } from '@/modules/auth/services/api'
 import { useAuthStore } from '@/stores/authStore'
 import ContractForm from '@/modules/auth/views/dashboard/ContractForm.vue'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
+const activeTab = ref('evidences')
 const evidencias = ref([])
 const empleados = ref([])
 const selectedEvidencia = ref(null)
@@ -149,15 +204,6 @@ const isLoadingEvidencias = ref(false)
 const isLoadingEmpleados = ref(false)
 
 const authStore = useAuthStore()
-
-function parseData(rawData) {
-  try {
-    const parsed = JSON.parse(rawData)
-    return parsed
-  } catch {
-    return {}
-  }
-}
 
 async function cargarEvidencias() {
   isLoadingEvidencias.value = true
@@ -185,7 +231,7 @@ async function validarEvidencia(id) {
       { validate: true },
       { headers: { Authorization: `Bearer ${token}` } }
     )
-    alert('✅ Evidencia validada correctamente.')
+    alert('Evidencia validada correctamente.')
     await cargarEvidencias()
   } catch (e) {
     console.error('Error validando evidencia:', e)
@@ -208,6 +254,72 @@ function verDetalles(evidencia) {
     .catch(e => console.error('Error cargando detalles del empleado:', e))
     .finally(() => isLoadingDetails.value = false)
   }
+}
+
+function getEmployeeEvidenceCount(employeeId) {
+  return evidencias.value.filter(e => e.employeeId === employeeId).length
+}
+
+function downloadReport() {
+  if (empleados.value.length === 0) {
+    alert('No hay datos para generar el reporte.')
+    return
+  }
+
+  const doc = new jsPDF()
+
+  // Title
+  doc.setFontSize(18)
+  doc.text('Reporte de Empleados', 14, 22)
+  doc.setFontSize(11)
+  doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 14, 30)
+
+  // Columns
+  const columns = [
+    { header: 'ID', dataKey: 'id' },
+    { header: 'Nombre', dataKey: 'name' },
+    { header: 'Apellido', dataKey: 'lastName' },
+    { header: 'Ocupación', dataKey: 'occupation' },
+    { header: 'Balance', dataKey: 'balance' },
+    { header: 'Evidencias', dataKey: 'evidenceCount' },
+    { header: 'Detalle Evidencias', dataKey: 'evidenceDetails' },
+  ]
+
+  // Rows
+  const rows = empleados.value.map(emp => {
+    const empEvidences = evidencias.value.filter(e => e.employeeId === emp.id)
+    const evidenceCount = empEvidences.length
+    
+    // Create a summary string of evidences
+    const evidenceDetails = empEvidences
+      .map(e => `${e.description || 'Sin descripción'} (${e.certificateResource?.issuedDate || 'Fecha no especificada'})`)
+      .join('\n') // Use newline for PDF readability
+
+    return {
+      id: emp.id,
+      name: emp.name,
+      lastName: emp.lastName,
+      occupation: emp.occupation || 'N/A',
+      balance: emp.balance || 0,
+      evidenceCount: evidenceCount,
+      evidenceDetails: evidenceDetails
+    }
+  })
+
+  // Generate Table
+  autoTable(doc, {
+    head: [columns.map(col => col.header)],
+    body: rows.map(row => columns.map(col => row[col.dataKey])),
+    startY: 35,
+    theme: 'grid',
+    styles: { fontSize: 8, cellPadding: 2 },
+    columnStyles: {
+      6: { cellWidth: 60 } // Wider column for evidence details
+    }
+  })
+
+  // Save
+  doc.save(`reporte_empleados_${new Date().toISOString().slice(0,10)}.pdf`)
 }
 
 onMounted(async () => {
@@ -252,126 +364,314 @@ onMounted(async () => {
 
 const handleContractSuccess = () => {
   showContractModal.value = false
-  // Optionally refresh data if contracts list is shown here (currently it's not)
 }
 </script>
 
 <style scoped>
-.empleados-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-}
-.empleado-card {
-  background: #f7f7f7;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 1rem;
+.dashboard-layout {
+  min-height: 100vh;
+  background-color: #f3f4f6;
   display: flex;
-  align-items: center;
-}
-.empleado-info p {
-  margin: 0.25rem 0 0;
-  font-size: 0.9rem;
-  color: #555;
+  flex-direction: column;
 }
 
-.company-dashboard {
-  background-color: #fcfcfc;
-  min-height: 100vh;
-  padding: 32px 16px;
-}
-.company-dashboard h2 {
-  text-align: center;
-  color: #166534;
-  margin-bottom: 2rem;
-}
-.company-actions {
+.dashboard-container {
   display: flex;
-  justify-content: center;
-  margin-bottom: 2rem;
+  flex: 1;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
 }
-.action-btn {
-  background: #e91e63;
-  color: #fff;
+
+/* Sidebar */
+.sidebar {
+  width: 260px;
+  background: white;
+  border-right: 1px solid #e5e7eb;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sidebar-header h2 {
+  font-size: 1.25rem;
+  color: #111827;
+  font-weight: 700;
+  margin: 0;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.nav-item {
+  text-align: left;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #4b5563;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+}
+
+.nav-item:hover {
+  background-color: #f9fafb;
+  color: #111827;
+}
+
+.nav-item.active {
+  background-color: #eff6ff;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.create-contract-btn {
+  width: 100%;
+  padding: 12px;
+  background: #2563eb;
+  color: white;
   border: none;
   border-radius: 8px;
-  padding: 12px 24px;
-  font-weight: 700;
-  text-decoration: none;
-  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
   transition: background 0.2s;
 }
-.action-btn:hover {
-  background: #d015b9;
-  }
-.company-features {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
+
+.create-contract-btn:hover {
+  background: #1d4ed8;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  padding: 32px;
+  overflow-y: auto;
+}
+
+.view-section {
   max-width: 1200px;
   margin: 0 auto;
 }
-.feature-card {
-  background: #fff;
-  padding: 1.25rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-.feature-card h3 {
-  color: #166534;
-  margin-bottom: 1rem;
-}
-.feature-card ul{
-  list-style: none;
-  padding: 0;
-}
-.evidence-card {
-  background: #f7f7f7;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-}
-.evidence-card pre {
-  background: #efefef;
-  padding: 0.5rem;
-  border-radius: 4px;
-  overflow-x: auto;
-}
-.evidence-actions {
+
+.section-header {
   display: flex;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-}
-.evidence-actions button {
-  padding: 0.5rem 0.75rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.2s;
-}
-.evidence-actions button:first-child {
-  background: #4caf50;
-  color: white;
-}
-.evidence-actions button:first-child:hover {
-  background: #43a047;
-}
-.evidence-actions button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-.evidence-actions button:last-child {
-  background: #1976d2;
-  color: white;
-}
-.evidence-actions button:last-child:hover {
-  background: #1565c0;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
 }
 
-/* Modal Styles */
+.section-header h3 {
+  font-size: 1.5rem;
+  color: #111827;
+  margin: 0;
+}
+
+.refresh-btn {
+  background: white;
+  border: 1px solid #e5e7eb;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.refresh-btn:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.download-btn {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+
+.download-btn:hover {
+  background: #059669;
+}
+
+/* Evidence Grid */
+.evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.evidence-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.evidence-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.evidence-type {
+  font-weight: 600;
+  color: #111827;
+}
+
+.status-badge {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.status-badge.validated {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.evidence-desc {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin: 0 0 8px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.evidence-date {
+  color: #9ca3af;
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.evidence-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.validate-btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+  background: #10b981;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.validate-btn:hover:not(:disabled) {
+  background: #059669;
+}
+
+.validate-btn:disabled {
+  background: #d1fae5;
+  color: #065f46;
+  cursor: default;
+}
+
+.details-btn {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  color: #374151;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.details-btn:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+/* Employees Table */
+.empleados-table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.empleados-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.empleados-table th {
+  background: #f9fafb;
+  padding: 16px 24px;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.empleados-table td {
+  padding: 16px 24px;
+  border-top: 1px solid #e5e7eb;
+  color: #111827;
+  font-size: 0.95rem;
+}
+
+.employee-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+}
+
+.avatar-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e0e7ff;
+  color: #4f46e5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.balance-cell {
+  font-family: monospace;
+  font-weight: 600;
+  color: #059669;
+}
+
+/* Modal Styles Reuse */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -467,22 +767,13 @@ const handleContractSuccess = () => {
 }
 .value.highlight {
   color: #166534;
+  font-weight: 600;
 }
-.data-preview {
-  background: #f8f9fa;
-  padding: 8px;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  color: #495057;
-  margin-top: 4px;
-  white-space: pre-wrap;
-  word-break: break-all;
-}
-.loading-text, .no-data {
+.loading-text, .no-data, .empty-state, .loading-state {
   text-align: center;
   color: #6c757d;
   font-style: italic;
-  padding: 10px;
+  padding: 24px;
 }
 .modal-footer {
   padding: 16px 24px;

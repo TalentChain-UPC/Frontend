@@ -16,7 +16,10 @@
             <p class="email">{{ user.email }}</p>
           </div>
           <button class="edit-btn-icon" @click="openEditProfileModal" title="Editar perfil">
-            ✏️
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+              <path d="m15 5 4 4"/>
+            </svg>
           </button>
         </div>
         
@@ -96,21 +99,21 @@
           <div class="podium-block silver" v-if="sortedPeople[1]">
             <div class="position">2°</div>
             <div class="person-info">
-              <div class="name">{{ sortedPeople[1].name }}</div>
+              <div class="name">{{ sortedPeople[1].name }} {{ sortedPeople[1].lastName }}</div>
               <div class="points">{{ sortedPeople[1].balance || 0 }} pts</div>
             </div>
           </div>
           <div class="podium-block gold" v-if="sortedPeople[0]">
             <div class="position">1°</div>
             <div class="person-info">
-              <div class="name">{{ sortedPeople[0].name }}</div>
+              <div class="name">{{ sortedPeople[0].name }} {{ sortedPeople[0].lastName }}</div>
               <div class="points">{{ sortedPeople[0].balance || 0 }} pts</div>
             </div>
           </div>
           <div class="podium-block bronze" v-if="sortedPeople[2]">
             <div class="position">3°</div>
             <div class="person-info">
-              <div class="name">{{ sortedPeople[2].name }}</div>
+              <div class="name">{{ sortedPeople[2].name }} {{ sortedPeople[2].lastName }}</div>
               <div class="points">{{ sortedPeople[2].balance || 0 }} pts</div>
             </div>
           </div>
@@ -124,7 +127,7 @@
         <h3 class="personal-achievements-header">
           Objetivos completados
           <div class="dashboard-header">
-            <button class="forum-btn" @click="goToForum">💡 Foro de Ideas</button>
+            <button class="forum-btn" @click="goToForum">Foro de Ideas</button>
           </div>
         </h3>
         <div class="personal-achievements-container">
@@ -197,7 +200,7 @@
 <script>
 import { useAuthStore } from '@/stores/authStore';
 import { useRouter } from 'vue-router';
-import { getEmployeeContracts, getEmployeeById, getEmployeeBalance } from '@/modules/auth/services/api';
+import { getEmployeeContracts, getEmployeeById, getEmployeeBalance, getEmployeesByCompany } from '@/modules/auth/services/api';
 import AppNavbar from '@/shared/components/AppNavbar.vue';
 import { computed, ref, reactive, onMounted } from 'vue';
 import EditProfileModal from '@/components/EditProfileModal.vue';
@@ -270,6 +273,26 @@ export default {
           if (companyId) {
             const res = await getEmployeeContracts(companyId, authStore.token);
             contracts.value = res.data; 
+
+            // Fetch Employees for Ranking
+            const employeesRes = await getEmployeesByCompany(companyId, authStore.token);
+            const employeesData = employeesRes.data || [];
+            
+            // Fetch balances for each employee
+            const employeesWithBalance = await Promise.all(employeesData.map(async (emp) => {
+              try {
+                const balanceRes = await getEmployeeBalance(emp.id, authStore.token);
+                return {
+                  ...emp,
+                  balance: balanceRes.data?.balance || 0
+                };
+              } catch (err) {
+                console.error(`Error fetching balance for employee ${emp.id}:`, err);
+                return { ...emp, balance: 0 };
+              }
+            }));
+            
+            people.value = employeesWithBalance;
           } else {
             console.warn('No company_id found for user');
           }
@@ -326,13 +349,7 @@ export default {
       { name: 'Laura Jiménez', transactionCode: '0x5G8H2...', points: 250 }
     ]);
 
-    const people = [
-      { name: "Luefa M.", points: 20000 },
-      { name: "Christhoper Q.", points: 15000 },
-      { name: "Alberto C.", points: 22000 },
-      { name: "María G.", points: 12000 },
-      { name: "Carlos S.", points: 19000 }
-    ];
+    const people = ref([]);
 
     const personalGoals = [
       { id: 1, text: "Asistencia perfecta este mes", progress: "12/30", points: 140 },
@@ -399,8 +416,8 @@ export default {
     };
 
     const sortedPeople = computed(() => {
-      return [...people]
-        .sort((a, b) => b.points - a.points)
+      return [...people.value]
+        .sort((a, b) => (b.balance || 0) - (a.balance || 0))
         .slice(0, 3);
     });
 
