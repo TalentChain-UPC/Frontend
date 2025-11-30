@@ -65,11 +65,11 @@
 
       <div class="personal-achievements-container scrollable-container">
         <div v-if="isLoadingContracts">Cargando contratos...</div>
-        <div v-else-if="contracts.length === 0">No tienes contratos activos.</div>
+        <div v-else-if="pendingContracts.length === 0">No tienes contratos pendientes.</div>
         <div
           v-else
           class="goal-tracker"
-          v-for="(contract, index) in contracts"
+          v-for="(contract, index) in pendingContracts"
           :key="contract.id"
         >
           <div class="goal-progress-circle">
@@ -122,27 +122,33 @@
     <div class="item item-5 featured-employees">
       <div class="personal-achievements-card">
         <h3 class="personal-achievements-header">
-          Mis Progresos
-        <div class="dashboard-header">
-          <!-- Botón de evidencia eliminado -->
-          <button class="forum-btn" @click="goToForum">💡 Foro de Ideas</button>
-        </div>
+          Objetivos completados
+          <div class="dashboard-header">
+            <button class="forum-btn" @click="goToForum">💡 Foro de Ideas</button>
+          </div>
         </h3>
         <div class="personal-achievements-container">
+          <div v-if="submittedContracts.length === 0">No tienes objetivos completados aún.</div>
           <div
-            v-for="goal in personalGoals"
-            :key="goal.id"
+            v-else
+            v-for="contract in submittedContracts"
+            :key="contract.id"
             class="goal-tracker"
           >
             <div class="goal-progress-circle">
-              <span class="goal-progress-count">{{ goal.progress }}</span>
+              <span class="goal-progress-count">
+                {{ contract.status === 'VALIDATED' ? '100%' : '50%' }}
+              </span>
             </div>
             <div class="goal-description">
-              <p class="goal-text">{{ goal.text }}</p>
+              <p class="goal-text">{{ contract.name }}</p>
+              <small style="color: #666;">
+                {{ contract.status === 'VALIDATED' ? 'Validado' : 'En revisión' }}
+              </small>
             </div>
             <div class="goal-rewards">
               <div class="reward-badge"></div>
-              <span class="reward-amount">{{ goal.points }} pts</span>
+              <span class="reward-amount">{{ contract.amount || 0 }} pts</span>
             </div>
           </div>
         </div>
@@ -245,6 +251,13 @@ export default {
     ])
 
     const contracts = ref([]);
+    const pendingContracts = computed(() => {
+      return contracts.value.filter(c => !['VALIDATED', 'PENDING_VALIDATION', 'PENDING'].includes(c.status));
+    });
+    const submittedContracts = computed(() => {
+      return contracts.value.filter(c => ['VALIDATED', 'PENDING_VALIDATION', 'PENDING'].includes(c.status));
+    });
+
     const isLoadingContracts = ref(false);
     const walletBalance = ref(0);
 
@@ -256,8 +269,8 @@ export default {
           const companyId = authStore.user?.company_id;
           if (companyId) {
             const res = await getEmployeeContracts(companyId, authStore.token);
-            // Filter: Show only contracts that are NOT validated
-            contracts.value = res.data.filter(c => c.status !== 'VALIDATED'); 
+            // Store all contracts, filtering happens in computed properties
+            contracts.value = res.data; 
           } else {
             console.warn('No company_id found for user');
           }
@@ -300,8 +313,7 @@ export default {
         isLoadingContracts.value = true;
         try {
            const res = await getEmployeeContracts(authStore.user.company_id, authStore.token);
-           // Filter: Show only contracts that are NOT validated
-           contracts.value = res.data.filter(c => c.status !== 'VALIDATED'); 
+           contracts.value = res.data; // Update all contracts
         } catch (error) {
           console.error("Error refreshing contracts:", error);
         } finally {
@@ -433,6 +445,8 @@ export default {
       goToForum,
       backToDashboard,
       contracts,
+      pendingContracts,
+      submittedContracts,
       isLoadingContracts,
       openEvidenceModal,
       showEvidenceModal,

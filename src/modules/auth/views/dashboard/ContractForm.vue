@@ -1,5 +1,5 @@
 <template>
-  <div class="contract-form-container">
+  <div class="contract-form-container" :class="{ 'modal-mode': isModal }">
     <form @submit.prevent="handleSubmit" class="contract-form">
       <button type="button" class="close-btn" @click="goBack" title="Volver">
         ×
@@ -105,6 +105,15 @@ import { createContract, getCompanyById } from '@/modules/auth/services/api'
 import { useAuthStore } from '@/stores/authStore'
 import { useRouter } from 'vue-router'
 
+const props = defineProps({
+  isModal: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const emit = defineEmits(['close', 'success'])
+
 const authStore = useAuthStore()
 const router = useRouter()
 
@@ -164,7 +173,11 @@ onMounted(() => {
 })
 
 const goBack = () => {
-  router.back()
+  if (props.isModal) {
+    emit('close')
+  } else {
+    router.back()
+  }
 }
 
 const handleSubmit = async () => {
@@ -225,6 +238,12 @@ const handleSubmit = async () => {
     mensaje.value = 'Contrato creado correctamente.'
     isError.value = false
     
+    if (props.isModal) {
+      setTimeout(() => {
+        emit('success')
+      }, 1500)
+    }
+    
     // Reset form
     name.value = ''
     description.value = ''
@@ -276,6 +295,13 @@ function removeBono(idx) {
   font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 
+.contract-form-container.modal-mode {
+  padding: 0;
+  min-height: auto;
+  background-color: transparent;
+  width: 100%;
+}
+
 .contract-form {
   position: relative;
   width: 100%;
@@ -287,6 +313,12 @@ function removeBono(idx) {
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.modal-mode .contract-form {
+  box-shadow: none;
+  padding: 20px;
+  max-width: 100%;
 }
 
 .close-btn {

@@ -5,9 +5,11 @@
       <h2>Panel de Empresa</h2>
 
       <div class="company-actions">
-        <router-link :to="{ name: 'nuevo-contrato' }" class="action-btn">
+      <div class="company-actions">
+        <button @click="showContractModal = true" class="action-btn">
           Crear nuevo contrato
-        </router-link>
+        </button>
+      </div>
       </div>
 
       <div class="company-features">
@@ -112,6 +114,17 @@
           </div>
         </div>
       </div>
+
+      <!-- Modal de crear contrato -->
+      <div v-if="showContractModal" class="modal-overlay">
+        <div class="modal-content contract-modal-content">
+          <ContractForm 
+            :isModal="true"
+            @close="showContractModal = false"
+            @success="handleContractSuccess"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -121,12 +134,14 @@ import { ref, onMounted } from 'vue'
 import AppNavbar from '@/shared/components/AppNavbar.vue'
 import api from '@/modules/auth/services/api'
 import { useAuthStore } from '@/stores/authStore'
+import ContractForm from '@/modules/auth/views/dashboard/ContractForm.vue'
 
 const evidencias = ref([])
 const empleados = ref([])
 const selectedEvidencia = ref(null)
 const selectedEmployee = ref(null)
 const isLoadingDetails = ref(false)
+const showContractModal = ref(false)
 
 const isLoadingEvidencias = ref(false)
 const isLoadingEmpleados = ref(false)
@@ -215,6 +230,11 @@ onMounted(async () => {
     isLoadingEmpleados.value = false
   }
 })
+
+const handleContractSuccess = () => {
+  showContractModal.value = false
+  // Optionally refresh data if contracts list is shown here (currently it's not)
+}
 </script>
 
 <style scoped>
@@ -356,6 +376,10 @@ onMounted(async () => {
   flex-direction: column;
   overflow: hidden;
   animation: slideUp 0.3s ease-out;
+}
+.contract-modal-content {
+  max-width: 800px; /* Wider for contract form */
+  width: 95%;
 }
 @keyframes slideUp {
   from { transform: translateY(20px); opacity: 0; }
