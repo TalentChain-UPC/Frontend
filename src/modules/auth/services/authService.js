@@ -52,9 +52,21 @@ export class AuthService {
       }
     } catch (e) {
       console.error('Login error:', e.response?.data || e)
+
+      let errorMessage = 'Error al iniciar sesión'
+      if (e.response) {
+        if (e.response.status === 404) {
+          errorMessage = 'Usuario no existente'
+        } else if (e.response.status === 401) {
+          errorMessage = 'Usuario o contraseña incorrecta'
+        } else {
+          errorMessage = e.response.data?.message || errorMessage
+        }
+      }
+
       return {
         success: false,
-        error: e.response?.data?.message || 'Error al iniciar sesión'
+        error: errorMessage
       }
     }
   }

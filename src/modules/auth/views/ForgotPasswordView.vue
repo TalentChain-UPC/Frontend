@@ -1,230 +1,305 @@
 <template>
-  <div class="auth-container">
-    <div class="auth-card">
-      <h1 class="auth-title">Recuperar Contraseña</h1>
-      <p class="auth-subtitle">
-        {{ isResetStep ? 'Ingresa tu nueva contraseña' : 'Ingresa tu email para recibir instrucciones' }}
-      </p>
+  <div class="login-bg-gradient">
+    <div class="login-main-container">
+      <!-- Imagen izquierda (opcional, o puedes quitarla si quieres que sea solo card centrada) -->
+      <div class="login-illustration">
+        <img src="/login-removebg.png" alt="forgot-password-illustration" />
+      </div>
+      <!-- Formulario derecha -->
+      <div class="login-card">
+        <h1 class="login-title">Recuperar Contraseña</h1>
+        <p class="login-subtitle">
+          {{ isResetStep ? 'Ingresa tu nueva contraseña' : 'Ingresa tu email para recibir instrucciones' }}
+        </p>
+        
+        <form @submit.prevent="isResetStep ? handleReset : handleRequest">
+          
+          <div v-if="!isResetStep" class="input-group">
+            <span class="input-icon">
+              <svg width="18" height="18" fill="none" stroke="#0B562F" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 8-4 8-4s8 0 8 4"/></svg>
+            </span>
+            <input
+              v-model="email"
+              type="email"
+              placeholder="Correo electrónico"
+              required
+            />
+          </div>
 
-      <form
-        @submit.prevent="isResetStep ? handleReset : handleRequest"
-        class="auth-form"
-      >
-        <div v-if="!isResetStep" class="form-group">
-          <label>Email</label>
-          <input
-            v-model="email"
-            type="email"
-            required
-            placeholder="tu@email.com"
+          <div v-if="isResetStep" class="input-group">
+            <span class="input-icon">
+              <svg width="18" height="18" fill="none" stroke="#0B562F" stroke-width="2" viewBox="0 0 24 24"><rect x="6" y="10" width="12" height="8" rx="2"/><path d="M12 16v-4"/><circle cx="12" cy="13" r="1"/></svg>
+            </span>
+            <input
+              v-model="newPassword"
+              type="password"
+              placeholder="Nueva Contraseña"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="login-btn"
+            :disabled="isLoading"
           >
-        </div>
+            <span v-if="!isLoading">{{ isResetStep ? 'Cambiar Contraseña' : 'Enviar' }}</span>
+            <div v-else class="spinner"></div>
+          </button>
 
-        <div v-if="isResetStep" class="form-group">
-          <label>Nueva Contraseña</label>
-          <input
-            v-model="newPassword"
-            type="password"
-            required
-            placeholder="••••••••"
-          >
-        </div>
+          <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
+          <p v-if="error" class="error-message">{{ error }}</p>
 
-        <button type="submit" :disabled="isLoading">
-          {{ isLoading ? 'Procesando...' : isResetStep ? 'Cambiar Contraseña' : 'Enviar' }}
-        </button>
-
-        <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
-        <p v-if="error" class="error-message">{{ error }}</p>
-
-        <router-link
-          to="/login"
-          class="back-to-login-link"
-        >
-          ← Volver al inicio de sesión
-        </router-link>
-      </form>
+          <div class="forgot-row" style="justify-content: center; margin-top: 16px;">
+            <router-link to="/login" class="forgot-link">← Volver al inicio de sesión</router-link>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-  import { ref, computed } from 'vue';
-  import { useRoute, useRouter } from 'vue-router';
-  import { useAuthStore } from '@/stores/authStore';
+import { ref, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/authStore';
 
-  export default {
-    setup() {
-      const email = ref('');
-      const newPassword = ref('');
-      const successMessage = ref('');
-      const route = useRoute();
-      const router = useRouter();
-      const authStore = useAuthStore();
+export default {
+  name: 'ForgotPasswordView',
+  setup() {
+    const email = ref('');
+    const newPassword = ref('');
+    const successMessage = ref('');
+    const route = useRoute();
+    const router = useRouter();
+    const authStore = useAuthStore();
 
-      // Verificar si hay token en la URL (ej: /forgot-password?token=abc123)
-      const token = computed(() => route.query.token || authStore.resetToken);
-      const isResetStep = computed(() => !!token.value);
+    // Verificar si hay token en la URL (ej: /forgot-password?token=abc123)
+    const token = computed(() => route.query.token || authStore.resetToken);
+    const isResetStep = computed(() => !!token.value);
 
-      const handleRequest = async () => {
-        const success = await authStore.requestPasswordReset(email.value);
-        if (success) {
-          successMessage.value = `Se han enviado instrucciones a ${email.value}`;
-          email.value = '';
-        }
-      };
+    const handleRequest = async () => {
+      const success = await authStore.requestPasswordReset(email.value);
+      if (success) {
+        successMessage.value = `Se han enviado instrucciones a ${email.value}`;
+        email.value = '';
+      }
+    };
 
-      const handleReset = async () => {
-        const success = await authStore.resetPassword(token.value, newPassword.value);
-        if (success) {
-          successMessage.value = 'Contraseña actualizada correctamente';
-          setTimeout(() => router.push('/login'), 2000);
-        }
-      };
+    const handleReset = async () => {
+      const success = await authStore.resetPassword(token.value, newPassword.value);
+      if (success) {
+        successMessage.value = 'Contraseña actualizada correctamente';
+        setTimeout(() => router.push('/login'), 2000);
+      }
+    };
 
-      return {
-        email,
-        newPassword,
-        handleRequest,
-        handleReset,
-        isResetStep,
-        isLoading: authStore.isLoading,
-        error: authStore.error,
-        successMessage
-      };
-    }
-  };
+    return {
+      email,
+      newPassword,
+      handleRequest,
+      handleReset,
+      isResetStep,
+      isLoading: authStore.isLoading,
+      error: authStore.error,
+      successMessage
+    };
+  }
+};
 </script>
 
 <style scoped>
-.auth-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+.login-bg-gradient {
   min-height: 100vh;
-  padding: 2rem;
-  background: linear-gradient(135deg, #edf2f7, #e2e8f0);
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(120deg, #f6fff8 0%, #fbeaff 100%);
+  font-family: 'Poppins', sans-serif;
 }
 
-.auth-card {
-  background: white;
-  padding: 2.5rem 2rem;
-  max-width: 420px;
-  width: 100%;
+.login-main-container {
+  display: flex;
+  width: 950px;
+  height: 520px;
+  background: transparent;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.login-illustration {
+  flex: 1.2;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+.login-illustration img {
+  width: 90%;
+  max-width: 370px;
+  min-width: 220px;
+  object-fit: contain;
+  user-select: none;
+}
+
+.login-card {
+  flex: 1;
+  background: #fff;
   border-radius: 16px;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.auth-title {
-  font-size: 1.8rem;
-  font-weight: 600;
-  text-align: center;
-  color: #2d3748;
-  margin-bottom: 0.5rem;
-}
-
-.auth-subtitle {
-  font-size: 1rem;
-  text-align: center;
-  color: #718096;
-  margin-bottom: 1.5rem;
-}
-
-.auth-form {
+  box-shadow: 0 4px 24px 0 rgba(31, 38, 135, 0.08);
+  padding: 48px 38px 38px 38px;
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
-}
-
-.form-group label {
-  font-weight: 500;
-  margin-bottom: 0.4rem;
-  color: #4a5568;
-  display: block;
-}
-
-.form-group input {
-  width: 92%;
-  padding: 0.65rem 0.9rem;
-  border: 1px solid #cbd5e0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border 0.2s ease;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: #4361ee;
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
-}
-
-button[type="submit"] {
-  background-color: #4361ee;
-  color: white;
-  padding: 0.75rem;
-  font-size: 1rem;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background-color 0.3s ease;
-  width: 60%;
-  display: flex;
   justify-content: center;
   align-items: center;
-  margin: 0 auto;
+  min-width: 320px;
+  max-width: 400px;
 }
 
-button[disabled] {
-  background-color: #4361ee;
+.login-title {
+  color: #e6007a;
+  font-size: 1.7rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  text-align: center;
+}
+.login-subtitle {
+  color: #222;
+  font-size: 1rem;
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #fafafa;
+  border: 1.5px solid #eaeaea;
+  border-radius: 8px;
+  padding: 0 12px;
+  margin-bottom: 0;
+}
+.input-group input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 1rem;
+  padding: 13px 8px 13px 36px;
+  width: 100%;
+  color: #222;
+  font-family: inherit;
+}
+.input-group input::placeholder {
+  color: #bdbdbd;
+  font-size: 0.98rem;
+}
+.input-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  cursor: default;
+}
+
+.forgot-row {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0;
+}
+.forgot-link {
+  color: #222;
+  font-size: 0.93rem;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.forgot-link:hover {
+  color: #e6007a;
+  text-decoration: underline;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 13px 0;
+  background: #e6007a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.08rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.2s;
+  box-shadow: 0 2px 8px 0 rgba(230,0,122,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login-btn:disabled {
+  background: #f3b2d1;
   cursor: not-allowed;
 }
+.login-btn:hover:not(:disabled) {
+  background: #c20065;
+}
 
-button:hover:not([disabled]) {
-  background-color: #4361ee;
+.spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid #fff;
+  border-top: 3px solid #e6007a;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .success-message {
   color: #38a169;
   text-align: center;
   font-size: 0.9rem;
+  margin-top: 10px;
+  font-weight: 500;
 }
 
 .error-message {
-  color: #e53e3e;
+  color: #e6007a;
+  font-size: 0.97rem;
+  margin-top: 10px;
   text-align: center;
-  font-size: 0.9rem;
+  font-weight: 500;
 }
 
-.back-to-login-link {
-  display: block;
-  text-align: center;
-  color: #4a5568;
-  font-size: 0.875rem;
-  margin-top: 1rem;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.back-to-login-link:hover {
-  color: #2b6cb0;
-  text-decoration: underline;
-}
-
-/* Responsive */
-@media (max-width: 480px) {
-  .auth-card {
-    padding: 2rem 1.5rem;
+@media (max-width: 900px) {
+  .login-main-container {
+    width: 98vw;
+    height: auto;
+    min-height: 480px;
   }
-
-  .auth-title {
-    font-size: 1.6rem;
+  .login-illustration {
+    display: none;
   }
-
-  .auth-subtitle {
-    font-size: 0.95rem;
+  .login-card {
+    max-width: 100vw;
+    min-width: 0;
+    width: 100vw;
+    border-radius: 0 0 16px 16px;
+    padding: 38px 18px 28px 18px;
   }
 }
-
 </style>
